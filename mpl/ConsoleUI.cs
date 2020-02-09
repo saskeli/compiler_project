@@ -2,7 +2,7 @@
 using System.IO;
 using CommandLine;
 using mpl.domain;
-using Type = mpl.domain.Type;
+using mpl.Exceptions;
 
 namespace mpl
 {
@@ -12,20 +12,74 @@ namespace mpl
         {
             return Parser.Default.ParseArguments<Options>(args)
                 .MapResult(
-                    options => Run(options),
+                    Run,
                     _ => 1);
         }
 
         private static int Run(Options options)
         {
-            using (StreamReader sr = new StreamReader(File.OpenRead(options.File)))
+            try
             {
-                StreamLexer parser = new StreamLexer(sr, options.Verbose, options.Debug);
-                Program prog = parser.Parse();
-                prog.Run();
+                using (StreamReader sr = new StreamReader(File.OpenRead(options.File)))
+                {
+                    StreamLexer parser = new StreamLexer(sr, options.Verbose, options.Debug);
+                    Program prog = parser.Parse();
+                    prog.Run();
+                }
+            }
+            catch (Exception ex)
+            {
+                switch (ex)
+                {
+                    case InvalidSyntaxException exception:
+                        InvalidSyntaxException ise = exception;
+                        OutputEx(ise.Message, ise.Line, ise.Position, options.File);
+                        break;
+                    case AssertionException exception:
+                        AssertionException ae = exception;
+                        OutputEx(ae.Message, ae.Line, ae.Position, options.File);
+                        break;
+                    case MplDivideByZeroException exception:
+                        MplDivideByZeroException mdbze = exception;
+                        OutputEx(mdbze.Message, mdbze.Line, mdbze.Position, options.File);
+                        break;
+                    case RuntimeException exception:
+                        RuntimeException rte = exception;
+                        OutputEx(rte.Message, rte.Line, rte.Position, options.File);
+                        break;
+                    case UnexpectedCharacterException exception:
+                        UnexpectedCharacterException uece = exception;
+                        OutputEx(uece.Message, uece.Line, uece.Position, options.File);
+                        break;
+                    case UnsupportedCharacterException exception:
+                        UnsupportedCharacterException usce = exception;
+                        OutputEx(usce.Message, usce.Line, usce.Position, options.File);
+                        break;
+                    default:
+                        throw;
+                }
             }
 
             return 0;
+        }
+
+        private static void OutputEx(string message, int line, int pos, string filePath)
+        {
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine($"{message}\n");
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                string prev = "";
+                string codeLine = "";
+                for (int i = 0; i < line; i++)
+                {
+                    prev = codeLine;
+                    codeLine = sr.ReadLine();
+                }
+                Console.WriteLine(prev);
+                Console.WriteLine(codeLine);
+            }
+            Console.WriteLine($"{new string('-', pos < 1 ? 1 : pos - 1)}^");
         }
 
         public class Options

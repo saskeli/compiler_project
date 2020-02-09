@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using mpl.Exceptions;
 
 namespace mpl.domain
@@ -9,9 +7,14 @@ namespace mpl.domain
     {
         private readonly Part _parent;
         private Definition _def;
-        public Reader(Part parent)
+        private readonly int _line;
+        private readonly int _position;
+
+        public Reader(Part parent, int line, int position)
         {
             _parent = parent;
+            _line = line;
+            _position = position;
         }
 
         public override void Run()
@@ -20,7 +23,7 @@ namespace mpl.domain
             switch (_def.GetValue())
             {
                 case MplInteger _:
-                    _def.SetValue(new MplInteger(int.Parse(inp)));
+                    _def.SetValue(new MplInteger(int.Parse(inp), _line, _position));
                     break;
                 case MplBoolean _:
                     _def.SetValue(new MplBoolean(bool.Parse(inp)));
@@ -36,14 +39,14 @@ namespace mpl.domain
         public override void Add(Token token)
         {
             if (_def != null)
-                throw new InvalidSyntaxException($"Expected line terminator. Got {token.token}", token.line, token.position);
-            if (token.tokenType != TokenType.Name)
-                throw new InvalidSyntaxException($"Expected variable identifier. Got {token.token}", token.line, token.position);
-            if (Keywords.Contains(token.token))
-                throw new InvalidSyntaxException($"{token.token} is not a valid variable identifier", token.line, token.position);
-            _def = GetDefinition(token.token);
+                throw new InvalidSyntaxException($"Expected line terminator. Got {token.TokenString}", token.Line, token.Position);
+            if (token.TokenType != TokenType.Name)
+                throw new InvalidSyntaxException($"Expected variable identifier. Got {token.TokenString}", token.Line, token.Position);
+            if (Keywords.Contains(token.TokenString))
+                throw new InvalidSyntaxException($"{token.TokenString} is not a valid variable identifier", token.Line, token.Position);
+            _def = GetDefinition(token.TokenString);
             if (_def == null)
-                throw new InvalidSyntaxException($"Use of uninitialized variable {token.token}", token.line, token.position);
+                throw new InvalidSyntaxException($"Use of uninitialized variable {token.TokenString}", token.Line, token.Position);
         }
 
         public override bool Exit() => _def != null;

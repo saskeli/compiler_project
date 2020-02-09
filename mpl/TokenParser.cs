@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using mpl.domain;
 
 namespace mpl
@@ -26,7 +24,7 @@ namespace mpl
                 if (_verbose || _debug > 0) Console.WriteLine("Token parsing started");
                 _called = true;
             }
-            if (_debug > 0) Console.WriteLine($"Received token {token.token} - {token.tokenType}.");
+            if (_debug > 0) Console.WriteLine($"Received TokenString {token.TokenString} - {token.TokenType}.");
             Prog.Add(token);
         }
 

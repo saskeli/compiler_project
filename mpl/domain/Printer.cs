@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace mpl.domain
 {
@@ -8,10 +6,11 @@ namespace mpl.domain
     {
         private readonly Part _parent;
         private readonly Assignment _ass;
-        public Printer(Part parent)
+
+        public Printer(Part parent, int line, int position)
         {
             _parent = parent;
-            _ass = new Assignment(this);
+            _ass = new Assignment(this, line, position);
         }
 
         public override void Run()

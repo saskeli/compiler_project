@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Microsoft.VisualBasic;
-using mpl.Exceptions;
+﻿using mpl.Exceptions;
 
 namespace mpl.domain
 {
@@ -19,16 +14,21 @@ namespace mpl.domain
         private Assignment _operation;
         private int _parens;
         private AssState _state = AssState.Empty;
-        public Assertion(Part parent)
+        private readonly int _position;
+        private readonly int _line;
+
+        public Assertion(Part parent, int line, int position)
         {
             _parent = parent;
+            _position = position;
+            _line = line;
         }
 
         public override void Run()
         {
             _operation.Run();
             if (!((MplBoolean)_operation.Value).Val)
-                throw new AssertionException("Assertion failed", 0, 0);
+                throw new AssertionException("Assertion failed", _line, _position);
         }
 
         public override Part GetParent() => _parent;
@@ -38,16 +38,16 @@ namespace mpl.domain
             switch (_state)
             {
                 case AssState.Empty:
-                    if (token.tokenType != TokenType.Control || token.token != "(")
-                        throw new InvalidSyntaxException($"Invalid token for start of assertion body: {token.token}", token.line, token.position);
+                    if (token.TokenType != TokenType.Control || token.TokenString != "(")
+                        throw new InvalidSyntaxException($"Invalid TokenString for start of assertion body: {token.TokenString}", token.Line, token.Position);
                     _parens++;
-                    _operation = new Assignment(this);
+                    _operation = new Assignment(this, token.Line, token.Position);
                     _state = AssState.Building;
                     return;
                 case AssState.Building:
-                    if (token.tokenType == TokenType.Control && token.token == "(")
+                    if (token.TokenType == TokenType.Control && token.TokenString == "(")
                         _parens++;
-                    else if (token.tokenType == TokenType.Control && token.token == ")")
+                    else if (token.TokenType == TokenType.Control && token.TokenString == ")")
                     {
                         _parens--;
                         if (_parens == 0) 
@@ -57,13 +57,13 @@ namespace mpl.domain
                                 _state = AssState.Done;
                                 return;
                             }
-                            throw new InvalidSyntaxException("Unexpected closing paren detected.", token.line, token.position);
+                            throw new InvalidSyntaxException("Unexpected closing paren detected.", token.Line, token.Position);
                         }
                     }
                     _operation.Add(token);
                     return;
                 case AssState.Done:
-                    throw new InvalidSyntaxException($"Line terminator expected. Got {token.token}.", token.line, token.position);
+                    throw new InvalidSyntaxException($"Line terminator expected. Got {token.TokenString}.", token.Line, token.Position);
 
             }
         }

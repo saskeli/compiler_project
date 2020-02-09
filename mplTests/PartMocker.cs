@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using mpl.domain;
 
-namespace mplTests.domain
+namespace mplTests
 {
-    class PartMocker : Part
+    public class PartMocker : Part
     {
         public int RunCalls;
         public int GetParentCalls;

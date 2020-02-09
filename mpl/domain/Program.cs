@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
+﻿using System.Collections.Generic;
 using mpl.Exceptions;
 
 namespace mpl.domain
 {
     public class Program : Part
     {
-        private Part _current = null;
+        private Part _current;
         private readonly List<Part> _subparts = new List<Part>();
         public Dictionary<string, int> Scope = new Dictionary<string, int>();
         private int _line;
@@ -32,25 +25,25 @@ namespace mpl.domain
         {
             if (_newAssign)
             {
-                if (token.tokenType != TokenType.Control || token.token != ":=")
-                    throw new InvalidSyntaxException($"Expected assignment. Got {token.token}", token.line, token.position);
+                if (token.TokenType != TokenType.Control || token.TokenString != ":=")
+                    throw new InvalidSyntaxException($"Expected assignment. Got {token.TokenString}", token.Line, token.Position);
                 _newAssign = false;
                 return;
             }
-            _line = token.line;
-            _pos = token.position;
-            if (token.tokenType == TokenType.Control && token.token.Equals(";"))
+            _line = token.Line;
+            _pos = token.Position;
+            if (token.TokenType == TokenType.Control && token.TokenString.Equals(";"))
             {
                 if (_current == null)
                 {
-                    throw new InvalidSyntaxException("Empty statement. Nothing to terminate", token.line, token.position);
+                    throw new InvalidSyntaxException("Empty statement. Nothing to terminate", token.Line, token.Position);
                 }
 
                 if (_current.Exit())
                 {
-                    if (_current is Definition)
+                    if (_current is Definition definition)
                     {
-                        Scope.Add(((Definition)_current).Name, _subparts.Count);
+                        Scope.Add(definition.Name, _subparts.Count);
                     }
                     _subparts.Add(_current);
                     _current = null;
@@ -63,21 +56,21 @@ namespace mpl.domain
                 return;
             }
 
-            if (token.tokenType != TokenType.Name)
+            if (token.TokenType != TokenType.Name)
             {
-                throw new InvalidSyntaxException("Expected keyword or variable identifier", token.line, token.position);
+                throw new InvalidSyntaxException("Expected keyword or variable identifier", token.Line, token.Position);
             }
 
-            if (Keywords.Contains(token.token))
+            if (Keywords.Contains(token.TokenString))
             {
                 AddKey(token);
                 return;
             }
 
-            if (!Scope.ContainsKey(token.token))
-                throw new InvalidSyntaxException($"Use of undeclared variable {token.token}", token.line, token.position);
+            if (!Scope.ContainsKey(token.TokenString))
+                throw new InvalidSyntaxException($"Use of undeclared variable {token.TokenString}", token.Line, token.Position);
 
-            _current = new Assignment((Definition)_subparts[Scope[token.token]], this);
+            _current = new Assignment((Definition)_subparts[Scope[token.TokenString]], this, token.Line, token.Position);
             _newAssign = true;
             _subparts.Add(_current);
         }
@@ -96,15 +89,15 @@ namespace mpl.domain
 
         private void AddKey(Token token)
         {
-            _current = token.token switch
+            _current = token.TokenString switch
             {
-                "var" => new Definition(this),
-                "for" => new Loop(this),
-                "read" => new Reader(this),
-                "print" => new Printer(this),
-                "assert" => new Assertion(this),
-                _ => throw new InvalidSyntaxException($"Invalid keyword for start of expression {token.token}",
-                    token.line, token.position)
+                "var" => new Definition(this, token.Line, token.Position),
+                "for" => new Loop(this, token.Line, token.Position),
+                "read" => new Reader(this, token.Line, token.Position),
+                "print" => new Printer(this, token.Line, token.Position),
+                "assert" => new Assertion(this, token.Line, token.Position),
+                _ => throw new InvalidSyntaxException($"Invalid keyword for start of expression {token.TokenString}",
+                    token.Line, token.Position)
             };
         }
 

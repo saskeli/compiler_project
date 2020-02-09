@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net.NetworkInformation;
 using System.Text;
 using mpl.domain;
 using mpl.Exceptions;
@@ -84,7 +83,7 @@ namespace mpl
                         _pos++;
                         continue;
                     case State.Escaped:
-                        AddToString(sb, cc);
+                        sb = AddToString(sb, cc);
                         _state = State.LiteralString;
                         _pos++;
                         continue;

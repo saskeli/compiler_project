@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
+﻿using System.Collections.Generic;
 using mpl.Exceptions;
 
 namespace mpl.domain
@@ -27,12 +24,16 @@ namespace mpl.domain
         private Part _current;
         private LState _state = LState.Empty;
         private bool _newAssign;
+        private readonly int _line;
+        private readonly int _position;
 
-        public Loop(Part parent)
+        public Loop(Part parent, int line, int position)
         {
             _parent = parent;
-            _sass = new Assignment(this);
-            _eass = new Assignment(this);
+            _line = line;
+            _position = position;
+            _sass = new Assignment(this, line, position);
+            _eass = new Assignment(this, line, position);
         }
 
         public override void Run()
@@ -40,14 +41,14 @@ namespace mpl.domain
             int[] range = GetRange();
             foreach (int i in range)
             {
-                _loopvar.SetValue(new MplInteger(i));
-                _loopvar.locked = true;
+                _loopvar.SetValue(new MplInteger(i, _line, _position));
+                _loopvar.Locked = true;
                 foreach (Part subPart in _subParts)
                 {
                     subPart.Run();
                 }
 
-                _loopvar.locked = false;
+                _loopvar.Locked = false;
             }
         }
 
@@ -76,6 +77,7 @@ namespace mpl.domain
 
         public override void Add(Token token)
         {
+            //TODO: Ensure definitions are possible in loops
             switch (_state)
             {
                 case LState.Empty:
@@ -94,42 +96,42 @@ namespace mpl.domain
                     BodyState(token);
                     break;
                 case LState.End:
-                    if (token.tokenType != TokenType.Name || token.token != "for")
-                        throw new InvalidSyntaxException($"No {token.token} to end", token.line, token.position);
+                    if (token.TokenType != TokenType.Name || token.TokenString != "for")
+                        throw new InvalidSyntaxException($"No {token.TokenString} to end", token.Line, token.Position);
                     _state = LState.For;
                     break;
                 case LState.For:
-                    throw new InvalidSyntaxException($"Expected line termination. Got {token.token}", token.line, token.position);
+                    throw new InvalidSyntaxException($"Expected line termination. Got {token.TokenString}", token.Line, token.Position);
             }
         }
 
         private void EmptyState(Token token)
         {
-            if (token.tokenType != TokenType.Name)
-                throw new InvalidSyntaxException($"Expected loop variable id. Got {token.token}", token.line, token.position);
-            if (Keywords.Contains(token.token))
-                throw new InvalidSyntaxException($"Loop variable can not be a reserved keyword. Got {token.token}", token.line, token.position);
-            _loopvar = GetDefinition(token.token);
+            if (token.TokenType != TokenType.Name)
+                throw new InvalidSyntaxException($"Expected loop variable id. Got {token.TokenString}", token.Line, token.Position);
+            if (Keywords.Contains(token.TokenString))
+                throw new InvalidSyntaxException($"Loop variable can not be a reserved keyword. Got {token.TokenString}", token.Line, token.Position);
+            _loopvar = GetDefinition(token.TokenString);
             if (_loopvar == null)
-                throw new InvalidSyntaxException($"Use of undefined variable as loop variable. {token.token}", token.line, token.position);
+                throw new InvalidSyntaxException($"Use of undefined variable as loop variable. {token.TokenString}", token.Line, token.Position);
             if (!(_loopvar.GetValue() is MplInteger))
-                throw new InvalidSyntaxException($"Loop variable {token.token} is not an integer", token.line, token.position);
+                throw new InvalidSyntaxException($"Loop variable {token.TokenString} is not an integer", token.Line, token.Position);
             _state = LState.Variabled;
         }
 
         private void VariabledState(Token token)
         {
-            if (token.tokenType != TokenType.Name || token.token != "in")
-                throw new InvalidSyntaxException($"Expected \"in\" keyword. Got {token.token}", token.line, token.position);
+            if (token.TokenType != TokenType.Name || token.TokenString != "in")
+                throw new InvalidSyntaxException($"Expected \"in\" keyword. Got {token.TokenString}", token.Line, token.Position);
             _state = LState.InGot;
         }
 
         private void InGotState(Token token)
         {
-            if (token.tokenType == TokenType.Control && token.token == "..")
+            if (token.TokenType == TokenType.Control && token.TokenString == "..")
             {
                 if (!_sass.Exit())
-                    throw new InvalidSyntaxException($"Invalid start of range definition", token.line, token.position);
+                    throw new InvalidSyntaxException("Invalid start of range definition", token.Line, token.Position);
                 _state = LState.RangeGot;
                 return;
             }
@@ -139,10 +141,10 @@ namespace mpl.domain
 
         private void RangeGotState(Token token)
         {
-            if (token.tokenType == TokenType.Name && token.token == "do")
+            if (token.TokenType == TokenType.Name && token.TokenString == "do")
             {
                 if (!_eass.Exit())
-                    throw new InvalidSyntaxException($"Invalid end of range definition", token.line, token.position);
+                    throw new InvalidSyntaxException("Invalid end of range definition", token.Line, token.Position);
                 _state = LState.Body;
                 return;
             }
@@ -154,8 +156,8 @@ namespace mpl.domain
         {
             if (_newAssign)
             {
-                if (token.tokenType != TokenType.Control || token.token != ":=")
-                    throw new InvalidSyntaxException($"Expected assignment. Got {token.token}", token.line, token.position);
+                if (token.TokenType != TokenType.Control || token.TokenString != ":=")
+                    throw new InvalidSyntaxException($"Expected assignment. Got {token.TokenString}", token.Line, token.Position);
                 _newAssign = false;
                 return;
             }
@@ -165,39 +167,39 @@ namespace mpl.domain
                 return;
             }
 
-            if (token.tokenType != TokenType.Name)
+            if (token.TokenType != TokenType.Name)
             {
-                throw new InvalidSyntaxException("Expected keyword or variable identifier", token.line, token.position);
+                throw new InvalidSyntaxException("Expected keyword or variable identifier", token.Line, token.Position);
             }
 
-            if (Keywords.Contains(token.token))
+            if (Keywords.Contains(token.TokenString))
             {
                 AddKey(token);
                 return;
             }
 
-            Definition def = GetDefinition(token.token);
+            Definition def = GetDefinition(token.TokenString);
             if (def ==null)
-                throw new InvalidSyntaxException($"Use of undeclared variable {token.token}", token.line, token.position);
+                throw new InvalidSyntaxException($"Use of undeclared variable {token.TokenString}", token.Line, token.Position);
 
-            _current = new Assignment(def, this);
+            _current = new Assignment(def, this, token.Line, token.Position);
             _newAssign = true;
         }
 
         private void AddKey(Token token)
         {
-            _current = token.token switch
+            _current = token.TokenString switch
             {
                 "end" => null,
-                "var" => new Definition(this),
-                "for" => new Loop(this),
-                "read" => new Reader(this),
-                "print" => new Printer(this),
-                "assert" => new Assertion(this),
-                _ => throw new InvalidSyntaxException($"Invalid keyword for start of expression {token.token}",
-                    token.line, token.position)
+                "var" => new Definition(this, token.Line, token.Position),
+                "for" => new Loop(this, token.Line, token.Position),
+                "read" => new Reader(this, token.Line, token.Position),
+                "print" => new Printer(this, token.Line, token.Position),
+                "assert" => new Assertion(this, token.Line, token.Position),
+                _ => throw new InvalidSyntaxException($"Invalid keyword for start of expression {token.TokenString}",
+                    token.Line, token.Position)
             };
-            if (token.token == "end")
+            if (token.TokenString == "end")
             {
                 _state = LState.End;
             }

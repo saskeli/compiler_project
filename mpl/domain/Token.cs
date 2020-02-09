@@ -1,36 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace mpl.domain
 {
     public struct Token
     {
 
-        public readonly TokenType tokenType;
-        public readonly int line;
-        public readonly int position;
-        public readonly string token;
+        public readonly TokenType TokenType;
+        public readonly int Line;
+        public readonly int Position;
+        public readonly string TokenString;
 
-        public Token(TokenType tokenType, int line, int position, string token)
+        public Token(TokenType tokenType, int line, int position, string tokenString)
         {
-            this.tokenType = tokenType;
-            this.line = line;
-            this.position = position;
-            this.token = token;
+            this.TokenType = tokenType;
+            this.Line = line;
+            this.Position = position;
+            this.TokenString = tokenString;
         }
 
         public Token(TokenType tokenType, int line, int position, char token)
         {
-            this.tokenType = tokenType;
-            this.line = line;
-            this.position = position;
-            this.token = token.ToString();
+            this.TokenType = tokenType;
+            this.Line = line;
+            this.Position = position;
+            this.TokenString = token.ToString();
         }
 
         public bool Equals(Token other)
         {
-            return tokenType == other.tokenType && line == other.line && position == other.position && token == other.token;
+            return TokenType == other.TokenType && Line == other.Line && Position == other.Position && TokenString == other.TokenString;
         }
 
         public override bool Equals(object obj)
@@ -40,12 +38,12 @@ namespace mpl.domain
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int)tokenType, line, position, token);
+            return HashCode.Combine((int)TokenType, Line, Position, TokenString);
         }
 
         public override string ToString()
         {
-            return $"Token: {tokenType}, {line}, {position}, \"{token}\"";
+            return $"Token: {TokenType}, {Line}, {Position}, \"{TokenString}\"";
         }
 
     }

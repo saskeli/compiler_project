@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
-using mplTests.domain;
+using mplTests;
 
 namespace mpl.domain.Tests
 {
@@ -17,16 +17,16 @@ namespace mpl.domain.Tests
         public void TestInitialize()
         {
             mock = new PartMocker();
-            mock.Definitions["bla"] = new Definition(mock) { Name = "bla" };
-            mock.Definitions["bla"].SetValue(new MplInteger(0));
-            mock.Definitions["fuu"] = new Definition(mock) { Name = "fuu" };
-            mock.Definitions["fuu"].SetValue(new MplInteger(0));
+            mock.Definitions["bla"] = new Definition(mock, 0, 0) { Name = "bla" };
+            mock.Definitions["bla"].SetValue(new MplInteger(0, 0, 0));
+            mock.Definitions["fuu"] = new Definition(mock, 0, 0) { Name = "fuu" };
+            mock.Definitions["fuu"].SetValue(new MplInteger(0, 0, 0));
         }
 
         [TestMethod()]
         public void LoopTest()
         {
-            Loop loo = new Loop(mock);
+            Loop loo = new Loop(mock, 0, 0);
             loo.Add(new Token(TokenType.Name, 0, 0, "bla"));
             loo.Add(new Token(TokenType.Name, 0, 0, "in"));
             loo.Add(new Token(TokenType.Name, 0, 0, "fuu"));
@@ -54,7 +54,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void RunTest()
         {
-            Loop loo = new Loop(mock);
+            Loop loo = new Loop(mock, 0, 0);
             loo.Add(new Token(TokenType.Name, 0, 0, "bla"));
             loo.Add(new Token(TokenType.Name, 0, 0, "in"));
             loo.Add(new Token(TokenType.Name, 0, 0, "fuu"));
@@ -82,7 +82,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetParentTest()
         {
-            Loop loo = new Loop(mock);
+            Loop loo = new Loop(mock, 0, 0);
             Assert.AreSame(mock, loo.GetParent());
         }
 

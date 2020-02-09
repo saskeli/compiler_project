@@ -1,11 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using mpl.domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Timers;
 using mpl.Exceptions;
-using mplTests.domain;
+using mplTests;
 
 namespace mpl.domain.Tests
 {
@@ -18,9 +13,9 @@ namespace mpl.domain.Tests
         public void TestInitialize()
         {
             mock = new PartMocker();
-            mock.Definitions["bla"] = new Definition(mock);
+            mock.Definitions["bla"] = new Definition(mock, 0, 0);
             mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock);
+            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
             mock.Definitions["fuu"].SetValue(new MplBoolean(true));
             mock.Scope.Add("bar");
         }
@@ -28,7 +23,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void AssertionTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             Part par = ass.GetParent();
             Assert.IsTrue(mock == par, "The mock instance should be returned by getParent()");
         }
@@ -38,7 +33,7 @@ namespace mpl.domain.Tests
             "Assertion failed")]
         public void RunThrowsTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Name, 0, 0, "bla"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
@@ -49,7 +44,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void RunTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Name, 0, 0, "fuu"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
@@ -59,10 +54,10 @@ namespace mpl.domain.Tests
 
         [TestMethod()]
         [ExpectedException(typeof(InvalidSyntaxException),
-            "Invalid token for start of assertion body: bla")]
+            "Invalid TokenString for start of assertion body: bla")]
         public void InvalidStartTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Name, 0, 0, "bla"));
         }
 
@@ -71,7 +66,7 @@ namespace mpl.domain.Tests
             "Unexpected closing paren detected.")]
         public void BadlyTimedParen()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "4"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
@@ -83,7 +78,7 @@ namespace mpl.domain.Tests
             "Line terminator expected. Got bla.")]
         public void RunawayExpression()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "4"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
@@ -95,7 +90,7 @@ namespace mpl.domain.Tests
             "Assertion failed")]
         public void ParenCountingTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "4"));
@@ -112,14 +107,14 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void ExitTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             Assert.IsFalse(ass.Exit());
         }
 
         [TestMethod()]
         public void GetDefinitionTest()
         {
-            Assertion ass = new Assertion(mock);
+            Assertion ass = new Assertion(mock, 0, 0);
             Assert.AreEqual(ass.GetDefinition("bla"), mock.Definitions["bla"]);
             Assert.IsNull(ass.GetDefinition("baz"));
         }

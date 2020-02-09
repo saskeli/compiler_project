@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using mpl.Exceptions;
+﻿using mpl.Exceptions;
 
 namespace mpl.domain
 {
@@ -17,32 +14,38 @@ namespace mpl.domain
         }
 
         private DState _state = DState.Empty;
-        private IValue val = null;
+        private IValue _val;
         public string Name;
         private readonly Part _parent;
-        private Assignment assignment;
-        public bool locked = false;
+        private Assignment _assignment;
+        public bool Locked = false;
+        public int Line;
+        public int Position;
 
-        public Definition(Part parent)
+        public Definition(Part parent, int line, int position)
         {
             _parent = parent;
+            Line = line;
+            Position = position;
         }
 
-        public Definition(Part parent, int v)
+        public Definition(Part parent, int v, int line, int position)
         {
             _parent = parent;
-            val = new MplInteger(v);
+            _val = new MplInteger(v, line, position);
+            Line = line;
+            Position = position;
         }
 
         public Definition(Part parent, string v)
         {
             _parent = parent;
-            val = new MplString(v);
+            _val = new MplString(v);
         }
 
         public override void Run()
         {
-            assignment?.Run();
+            _assignment?.Run();
         }
 
         public override Part GetParent() => _parent;
@@ -55,9 +58,9 @@ namespace mpl.domain
                     SetName(token);
                     return;
                 case DState.Named:
-                    if (token.tokenType != TokenType.Control
-                        || !token.token.Equals(":"))
-                        throw new InvalidSyntaxException("':' required after defining a variable name", token.line, token.position);
+                    if (token.TokenType != TokenType.Control
+                        || !token.TokenString.Equals(":"))
+                        throw new InvalidSyntaxException("':' required after defining a variable name", token.Line, token.Position);
                     _state = DState.Typing;
                     return;
                 case DState.Typing:
@@ -67,50 +70,50 @@ namespace mpl.domain
                     BuildAssignment(token);
                     return;
                 case DState.Assigning:
-                    assignment.Add(token);
+                    _assignment.Add(token);
                     return;
             }
         }
 
         private void BuildAssignment(Token token)
         {
-            if (token.tokenType != TokenType.Control || token.token != ":=")
-                throw new InvalidSyntaxException($"Expected assignment token or line terminator. Got {token.token}", token.line, token.position);
-            assignment = new Assignment(this, this);
+            if (token.TokenType != TokenType.Control || token.TokenString != ":=")
+                throw new InvalidSyntaxException($"Expected assignment TokenString or line terminator. Got {token.TokenString}", token.Line, token.Position);
+            _assignment = new Assignment(this, this, token.Line, token.Position);
             _state = DState.Assigning;
         }
 
         private void SetType(Token token)
         {
-            if (token.tokenType != TokenType.Name)
-                throw new InvalidSyntaxException("Type declaration required", token.line, token.position);
-            val = token.token switch
+            if (token.TokenType != TokenType.Name)
+                throw new InvalidSyntaxException("Type declaration required", token.Line, token.Position);
+            _val = token.TokenString switch
             {
-                "int" => new MplInteger(0),
+                "int" => new MplInteger(0, token.Line, token.Position),
                 "bool" => new MplBoolean(false),
                 "string" => new MplString(""),
-                _ => throw new InvalidSyntaxException($"Invalid type declaration: {token.token}", token.line, token.position)
+                _ => throw new InvalidSyntaxException($"Invalid type declaration: {token.TokenString}", token.Line, token.Position)
             };
             _state = DState.Typed;
         }
 
         private void SetName(Token token)
         {
-            if (token.tokenType != TokenType.Name)
-                throw new InvalidSyntaxException("Expected a name after variable declaration", token.line, token.position);
-            if (Keywords.Contains(token.token))
-                throw new InvalidSyntaxException($"Unable to re-define reserved keyword {token.token}", token.line, token.position);
-            Definition d = GetDefinition(token.token);
+            if (token.TokenType != TokenType.Name)
+                throw new InvalidSyntaxException("Expected a name after variable declaration", token.Line, token.Position);
+            if (Keywords.Contains(token.TokenString))
+                throw new InvalidSyntaxException($"Unable to re-define reserved keyword {token.TokenString}", token.Line, token.Position);
+            Definition d = GetDefinition(token.TokenString);
             if (d != null)
-                throw new InvalidSyntaxException($"Unable to re-define variable {token.token}", token.line, token.position);
-            Name = token.token;
+                throw new InvalidSyntaxException($"Unable to re-define variable {token.TokenString}", token.Line, token.Position);
+            Name = token.TokenString;
             _state = DState.Named;
         }
 
         public override bool Exit()
         {
             if (_state == DState.Typed) return true;
-            return assignment != null && assignment.Exit();
+            return _assignment != null && _assignment.Exit();
         }
 
         public override Definition GetDefinition(string name)
@@ -118,17 +121,17 @@ namespace mpl.domain
             return _parent.GetDefinition(name);
         }
 
-        public IValue GetValue() => val;
+        public IValue GetValue() => _val;
 
         public void SetValue(IValue v)
         {
-            if (locked) throw new RuntimeException($"Assignment to locked variable {Name}", 0, 0);
-            val = v;
+            if (Locked) throw new RuntimeException($"Assignment to locked variable {Name}", Line, Position);
+            _val = v;
         }
 
         public new Type GetType()
         {
-            return val switch
+            return _val switch
             {
                 MplBoolean _ => Type.Bool,
                 MplInteger _ => Type.Int,

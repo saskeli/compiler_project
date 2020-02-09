@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using mpl.Exceptions;
+﻿using mpl.Exceptions;
 
 namespace mpl.domain
 {
@@ -41,16 +38,22 @@ namespace mpl.domain
         private AState _state = AState.Empty;
         private Operator _operator;
         private int _parens;
+        private readonly int _position;
+        private readonly int _line;
 
-        public Assignment(Definition definition, Part parent)
+        public Assignment(Definition definition, Part parent, int line, int position)
         {
             _definition = definition;
             _parent = parent;
+            _line = line;
+            _position = position;
         }
 
-        public Assignment(Part parent)
+        public Assignment(Part parent, int line, int position)
         {
             _parent = parent;
+            _line = line;
+            _position = position;
         }
 
         public override void Run()
@@ -162,14 +165,14 @@ namespace mpl.domain
                     Op2SubPartState(token);
                     return;
                 case AState.Done:
-                    throw new InvalidSyntaxException($"Expected line terminator. Not {token.token}", token.line, token.position);
+                    throw new InvalidSyntaxException($"Expected line terminator. Not {token.TokenString}", token.Line, token.Position);
             }
 
         }
 
         private void Op2SubPartState(Token token)
         {
-            if (token.token == ")")
+            if (token.TokenString == ")")
             {
                 _parens--;
                 if (_parens > 0)
@@ -178,18 +181,18 @@ namespace mpl.domain
                     return;
                 }
                 if (!_sub2.Exit())
-                    throw new InvalidSyntaxException("Invalid closing paren", token.line, token.position);
+                    throw new InvalidSyntaxException("Invalid closing paren", token.Line, token.Position);
                 _state = AState.Done;
                 return;
             }
-            if (token.token == "(")
+            if (token.TokenString == "(")
                 _parens++;
             _sub2.Add(token);
         }
 
         private void Op1SubPartState(Token token)
         {
-            if (token.token == ")")
+            if (token.TokenString == ")")
             {
                 _parens--;
                 if (_parens > 0)
@@ -199,37 +202,37 @@ namespace mpl.domain
                 }
 
                 if (!_sub1.Exit())
-                    throw new InvalidSyntaxException("Invalid closing paren", token.line, token.position);
+                    throw new InvalidSyntaxException("Invalid closing paren", token.Line, token.Position);
                 _state = AState.Operanded;
                 return;
             }
-            if (token.token == "(")
+            if (token.TokenString == "(")
                 _parens++;
             _sub1.Add(token);
         }
 
         private void OperatoredState(Token token)
         {
-            switch (token.tokenType)
+            switch (token.TokenType)
             {
                 case TokenType.Control:
-                    if (token.token != "(")
-                        throw new InvalidSyntaxException($"Invalid token for binary operator {token.token}", token.line, token.position);
+                    if (token.TokenString != "(")
+                        throw new InvalidSyntaxException($"Invalid TokenString for binary operator {token.TokenString}", token.Line, token.Position);
                     _parens++;
                     _state = AState.Op2SubPart;
-                    _sub2 = new Assignment(this);
+                    _sub2 = new Assignment(this, token.Line, token.Position);
                     return;
                 case TokenType.Name:
-                    _def2 = GetDefinition(token.token);
-                    if (_def2 == null) throw new InvalidSyntaxException($"Use of undefined variable {token.token}", token.line, token.position);
+                    _def2 = GetDefinition(token.TokenString);
+                    if (_def2 == null) throw new InvalidSyntaxException($"Use of undefined variable {token.TokenString}", token.Line, token.Position);
                     if (CheckType()) _state = AState.Done;
                     return;
                 case TokenType.Number:
-                    _def2 = new Definition(this, int.Parse(token.token));
+                    _def2 = new Definition(this, int.Parse(token.TokenString), token.Line, token.Position);
                     if (CheckType()) _state = AState.Done;
                     return;
                 case TokenType.String:
-                    _def2 = new Definition(this, token.token);
+                    _def2 = new Definition(this, token.TokenString);
                     if (CheckType()) _state = AState.Done;
                     return;
             }
@@ -261,15 +264,15 @@ namespace mpl.domain
                     (_def1?.GetType() ?? _sub1.GetType()) == Type.Int
                     && (_def2?.GetType() ?? _sub2.GetType()) == Type.Int)
             };
-            if (!res) throw new InvalidSyntaxException("Invalid operand types", 0, 0); //TODO: Line number.
+            if (!res) throw new InvalidSyntaxException("Invalid operand types", _line, _position);
             return true;
         }
 
         private void OperandedState(Token token)
         {
-            if (token.tokenType != TokenType.Control)
-                throw new InvalidSyntaxException($"Expected binary operator. Got {token.token}", token.line, token.position);
-            _operator = token.token switch
+            if (token.TokenType != TokenType.Control)
+                throw new InvalidSyntaxException($"Expected binary operator. Got {token.TokenString}", token.Line, token.Position);
+            _operator = token.TokenString switch
             {
                 "+" => Operator.Addition,
                 "-" => Operator.Subtraction,
@@ -278,43 +281,43 @@ namespace mpl.domain
                 "<" => Operator.Less,
                 "=" => Operator.Equality,
                 "&" => Operator.And,
-                _ => throw new InvalidSyntaxException($"Expected binary operator. Got {token.token}", token.line,
-                    token.position)
+                _ => throw new InvalidSyntaxException($"Expected binary operator. Got {token.TokenString}", token.Line,
+                    token.Position)
             };
             _state = AState.Operatored;
         }
 
         private void UnaryState(Token token)
         {
-            switch (token.tokenType)
+            switch (token.TokenType)
             {
                 case TokenType.Control:
-                    if (token.token != "(")
-                        throw new InvalidSyntaxException($"Invalid token for body of negation {token.token}", token.line, token.position);
+                    if (token.TokenString != "(")
+                        throw new InvalidSyntaxException($"Invalid TokenString for body of negation {token.TokenString}", token.Line, token.Position);
                     _parens++;
                     _state = AState.UnarySubPart;
-                    _sub1 = new Assignment(this);
+                    _sub1 = new Assignment(this, token.Line, token.Position);
                     return;
                 case TokenType.Name:
-                    _def1 = GetDefinition(token.token);
-                    if (_def1 == null) throw new InvalidSyntaxException($"Use of undefined variable {token.token}", token.line, token.position);
+                    _def1 = GetDefinition(token.TokenString);
+                    if (_def1 == null) throw new InvalidSyntaxException($"Use of undefined variable {token.TokenString}", token.Line, token.Position);
                     if (_def1.GetValue() is MplBoolean)
                     {
                         _state = AState.Done;
                         return;
                     }
-                    throw new InvalidSyntaxException($"{token.token} is not boolean. Invalid type for negation", token.line, token.position);
+                    throw new InvalidSyntaxException($"{token.TokenString} is not boolean. Invalid type for negation", token.Line, token.Position);
                 default:
-                    throw new InvalidSyntaxException($"{token.token} is not boolean.", token.line, token.position);
+                    throw new InvalidSyntaxException($"{token.TokenString} is not boolean.", token.Line, token.Position);
             }
         }
 
         private void EmptyState(Token token)
         {
-            switch (token.tokenType)
+            switch (token.TokenType)
             {
                 case TokenType.Control:
-                    switch (token.token)
+                    switch (token.TokenString)
                     {
                         case "!":
                             _operator = Operator.Negation;
@@ -322,26 +325,26 @@ namespace mpl.domain
                             return;
                         case "(":
                             _state = AState.Op1SubPart;
-                            _sub1 = new Assignment(this);
+                            _sub1 = new Assignment(this, token.Line, token.Position);
                             _parens++;
                             return;
                         default:
-                            throw new InvalidSyntaxException($"Invalid token at start of expression {token.token}", token.line, token.position);
+                            throw new InvalidSyntaxException($"Invalid TokenString at start of expression {token.TokenString}", token.Line, token.Position);
                     }
                 case TokenType.Name:
-                    if (Keywords.Contains(token.token))
-                        throw new InvalidSyntaxException($"Undefined use of reserved keyword {token.token}", token.line, token.position);
-                    _def1 = GetDefinition(token.token);
+                    if (Keywords.Contains(token.TokenString))
+                        throw new InvalidSyntaxException($"Undefined use of reserved keyword {token.TokenString}", token.Line, token.Position);
+                    _def1 = GetDefinition(token.TokenString);
                     if (_def1 == null) 
-                        throw new InvalidSyntaxException($"Reference to undefined variable {token.token}", token.line, token.position);
+                        throw new InvalidSyntaxException($"Reference to undefined variable {token.TokenString}", token.Line, token.Position);
                     _state = AState.Operanded;
                     return;
                 case TokenType.Number:
-                    _def1 = new Definition(this, int.Parse(token.token));
+                    _def1 = new Definition(this, int.Parse(token.TokenString), _line, _position);
                     _state = AState.Operanded;
                     return;
                 case TokenType.String:
-                    _def1 = new Definition(this, token.token);
+                    _def1 = new Definition(this, token.TokenString);
                     _state = AState.Operanded;
                     return;
             }

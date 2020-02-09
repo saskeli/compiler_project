@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using mplTests;
-using mplTests.domain;
 
 namespace mpl.domain.Tests
 {
@@ -18,14 +17,14 @@ namespace mpl.domain.Tests
         public void TestInitialize()
         {
             mock = new PartMocker();
-            Definition def = new Definition(mock) { Name = "bla" };
+            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
             mock.Definitions["bla"] = def;
             mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock);
-            mock.Definitions["fuu"].SetValue(new MplInteger(2));
-            mock.Definitions["bar"] = new Definition(mock) { Name = "bar" };
+            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
+            mock.Definitions["fuu"].SetValue(new MplInteger(2, 0, 0));
+            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
             mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock) { Name = "baz" };
+            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
             mock.Definitions["baz"].SetValue(new MplString("baz"));
 
             imock = new InMocker();
@@ -35,7 +34,7 @@ namespace mpl.domain.Tests
         public void ReaderTest()
         {
             imock.Inp.Add("POTATO");
-            Reader rea = new Reader(mock);
+            Reader rea = new Reader(mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "bar"));
             rea.Exit();
             Console.SetIn(imock);
@@ -48,7 +47,7 @@ namespace mpl.domain.Tests
         public void RunTest()
         {
             imock.Inp.Add("14");
-            Reader rea = new Reader(mock);
+            Reader rea = new Reader(mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "fuu"));
             rea.Exit();
             Console.SetIn(imock);
@@ -60,7 +59,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetParentTest()
         {
-            Reader rea = new Reader(mock);
+            Reader rea = new Reader(mock, 0, 0);
             Assert.AreSame(mock, rea.GetParent());
         }
 
@@ -68,7 +67,7 @@ namespace mpl.domain.Tests
         public void AddTest()
         {
             imock.Inp.Add("True");
-            Reader rea = new Reader(mock);
+            Reader rea = new Reader(mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "bla"));
             rea.Exit();
             Console.SetIn(imock);

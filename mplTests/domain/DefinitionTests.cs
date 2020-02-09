@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using mplTests.domain;
+using mplTests;
 
 namespace mpl.domain.Tests
 {
@@ -17,21 +17,21 @@ namespace mpl.domain.Tests
         public void TestInitialize()
         {
             mock = new PartMocker();
-            Definition def = new Definition(mock) { Name = "bla" };
+            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
             mock.Definitions["bla"] = def;
             mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock);
+            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
             mock.Definitions["fuu"].SetValue(new MplBoolean(true));
-            mock.Definitions["bar"] = new Definition(mock) { Name = "bar" };
+            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
             mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock) { Name = "baz" };
+            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
             mock.Definitions["baz"].SetValue(new MplString("baz"));
         }
 
         [TestMethod()]
         public void DefinitionTest()
         {
-            Definition def = new Definition(mock, 4);
+            Definition def = new Definition(mock, 4, 0, 0);
             Assert.IsTrue(def.GetValue() is MplInteger);
             Assert.AreEqual(4, ((MplInteger)def.GetValue()).Val);
 
@@ -43,7 +43,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void RunTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Nom"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
@@ -59,14 +59,14 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetParentTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             Assert.IsTrue(mock == def.GetParent());
         }
 
         [TestMethod()]
         public void ExitTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "bool"));
@@ -78,7 +78,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetDefinitionTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             Assert.AreEqual(mock.Definitions["bla"], def.GetDefinition("bla"));
             Assert.IsNull(def.GetDefinition("Alice"));
         }
@@ -86,7 +86,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetValueTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
@@ -96,7 +96,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void SetValueTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
@@ -109,7 +109,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetTypeTest()
         {
-            Definition def = new Definition(mock);
+            Definition def = new Definition(mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));

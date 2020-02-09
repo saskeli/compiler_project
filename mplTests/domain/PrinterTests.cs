@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using mplTests;
-using mplTests.domain;
 
 namespace mpl.domain.Tests
 {
@@ -18,14 +17,14 @@ namespace mpl.domain.Tests
         public void TestInitialize()
         {
             mock = new PartMocker();
-            Definition def = new Definition(mock) { Name = "bla" };
+            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
             mock.Definitions["bla"] = def;
             mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock);
+            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
             mock.Definitions["fuu"].SetValue(new MplBoolean(true));
-            mock.Definitions["bar"] = new Definition(mock) { Name = "bar" };
+            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
             mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock) { Name = "baz" };
+            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
             mock.Definitions["baz"].SetValue(new MplString("baz"));
 
             omock = new OutMocker();
@@ -34,7 +33,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void PrinterTest()
         {
-            Printer pri = new Printer(mock);
+            Printer pri = new Printer(mock, 0, 0);
             pri.Add(new Token(TokenType.Name, 0, 0, "bar"));
             pri.Add(new Token(TokenType.Control, 0, 0, "+"));
             pri.Add(new Token(TokenType.String, 0, 0, "rab"));
@@ -49,7 +48,7 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void RunTest()
         {
-            Printer pri = new Printer(mock);
+            Printer pri = new Printer(mock, 0, 0);
             pri.Add(new Token(TokenType.Number, 0, 0, "4"));
             pri.Add(new Token(TokenType.Control, 0, 0, "-"));
             pri.Add(new Token(TokenType.Number, 0, 0, "3"));
@@ -64,14 +63,14 @@ namespace mpl.domain.Tests
         [TestMethod()]
         public void GetParentTest()
         {
-            Printer pri = new Printer(mock);
+            Printer pri = new Printer(mock, 0, 0);
             Assert.AreSame(mock, pri.GetParent());
         }
 
         [TestMethod()]
         public void AddTest()
         {
-            Printer pri = new Printer(mock);
+            Printer pri = new Printer(mock, 0, 0);
             pri.Add(new Token(TokenType.Name, 0, 0, "bla"));
             pri.Add(new Token(TokenType.Control, 0, 0, "&"));
             pri.Add(new Token(TokenType.Name, 0, 0, "fuu"));
