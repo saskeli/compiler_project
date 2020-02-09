@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "mpl": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\mpl\\mpl\\bla.mpl"
+    }
+  }
+}
