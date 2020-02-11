@@ -5,7 +5,7 @@ using Type = mpl.domain.Type;
 
 namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class MplIntegerTests
     {
         private MplInteger _a;
@@ -22,7 +22,7 @@ namespace mplTests.domain
             _d = new MplInteger(0, 0, 0);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void MplIntegerTest()
         {
             Assert.AreEqual(0, _a.Val);
@@ -31,7 +31,7 @@ namespace mplTests.domain
             Assert.AreEqual(0, _d.Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetTypeTest()
         {
             Assert.AreEqual(Type.Int, _a.GetType());
@@ -40,7 +40,7 @@ namespace mplTests.domain
             Assert.AreEqual(Type.Int, _d.GetType());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void EqualsTest()
         {
             Assert.IsTrue(_a.Equals(_d));
@@ -51,7 +51,7 @@ namespace mplTests.domain
             Assert.IsFalse(_b.Equals(_d));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void AdditionTest()
         {
             Assert.AreEqual(2, (_a + _b).Val);
@@ -63,7 +63,7 @@ namespace mplTests.domain
             Assert.AreEqual(0, (_d + _a).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void SubtractionTest()
         {
             Assert.AreEqual(-2, (_a - _b).Val);
@@ -75,7 +75,7 @@ namespace mplTests.domain
             Assert.AreEqual(0, (_d - _a).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void MultiplicationTest()
         {
             Assert.AreEqual(0, (_a * _b).Val);
@@ -87,7 +87,7 @@ namespace mplTests.domain
             Assert.AreEqual(0, (_d * _a).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(MplDivideByZeroException), 
             "Expected zero division error for 2 / 0")]
         public void DivisionTest()
@@ -100,7 +100,7 @@ namespace mplTests.domain
             MplInteger _ = _b / _a;
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void EqualityTest()
         {
 #pragma warning disable CS1718 // Comparison made to same variable
@@ -113,7 +113,7 @@ namespace mplTests.domain
             Assert.IsFalse((_d == _b).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void InequalityTest()
         {
 #pragma warning disable CS1718 // Comparison made to same variable
@@ -126,7 +126,7 @@ namespace mplTests.domain
             Assert.IsTrue((_d != _b).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void LessTest()
         {
             Assert.IsTrue((_a < _b).Val);
@@ -136,7 +136,7 @@ namespace mplTests.domain
             Assert.IsTrue((_c < _b).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GreaterTest()
         {
             Assert.IsFalse((_a > _b).Val);

@@ -51,13 +51,12 @@ namespace mpl.domain
                     {
                         _parens--;
                         if (_parens == 0) 
-                        { 
-                            if (_operation.Exit())
-                            {
-                                _state = AssState.Done;
-                                return;
-                            }
-                            throw new InvalidSyntaxException("Unexpected closing paren detected.", token.Line, token.Position);
+                        {
+                            if (!_operation.Exit())
+                                throw new InvalidSyntaxException("Unexpected closing paren detected.", token.Line,
+                                    token.Position);
+                            _state = AssState.Done;
+                            return;
                         }
                     }
                     _operation.Add(token);

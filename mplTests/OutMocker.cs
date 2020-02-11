@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace mplTests
 {
-    class OutMocker : TextWriter
+    public class OutMocker : TextWriter
     {
         public List<string> Output = new List<string>();
         public override Encoding Encoding { get; }
+
+        public OutMocker(Encoding encoding)
+        {
+            Encoding = encoding;
+        }
 
         public override void Write(int value)
         {

@@ -2,7 +2,7 @@
 
 namespace mpl.domain
 {
-    public struct MplInteger : IValue
+    public class MplInteger : IValue
     {
         public readonly int Val;
         public readonly int Line;
@@ -31,20 +31,74 @@ namespace mpl.domain
             return obj is MplInteger other && Equals(other);
         }
 
-        public static MplInteger operator +(MplInteger a, MplInteger b) => new MplInteger(a.Val + b.Val, a.Line, a.Position);
-        public static MplInteger operator -(MplInteger a, MplInteger b) => new MplInteger(a.Val - b.Val, a.Line, a.Position);
-        public static MplInteger operator *(MplInteger a, MplInteger b) => new MplInteger(a.Val * b.Val, a.Line, a.Position);
+        public static MplInteger operator +(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplInteger(a.Val + b.Val, l, p);
+        }
+
+        public static MplInteger operator -(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplInteger(a.Val - b.Val, l, p);
+        }
+
+        public static MplInteger operator *(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplInteger(a.Val * b.Val, l, p);
+        }
 
         public static MplInteger operator /(MplInteger a, MplInteger b)
         {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
             if (b.Val == 0) 
                 throw new MplDivideByZeroException("Attempted to divide by zero", b.Line, b.Position);
-            return new MplInteger(a.Val / b.Val, a.Line, a.Position);
+            return new MplInteger(a.Val / b.Val, l, p);
         }
-        public static MplBoolean operator ==(MplInteger a, MplInteger b) => new MplBoolean(a.Val == b.Val);
-        public static MplBoolean operator !=(MplInteger a, MplInteger b) => new MplBoolean(a.Val != b.Val);
-        public static MplBoolean operator <(MplInteger a, MplInteger b) => new MplBoolean(a.Val < b.Val);
-        public static MplBoolean operator >(MplInteger a, MplInteger b) => new MplBoolean(a.Val > b.Val);
-        
+
+        public static MplBoolean operator ==(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplBoolean(a.Val == b.Val, l, p);
+        }
+
+        public static MplBoolean operator !=(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplBoolean(a.Val != b.Val, l, p);
+        }
+
+        public static MplBoolean operator <(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplBoolean(a.Val < b.Val, l, p);
+        }
+
+        public static MplBoolean operator >(MplInteger a, MplInteger b)
+        {
+            int l = a.Line > b.Line ? a.Line : b.Line;
+            int p = a.Position > b.Position ? a.Position : b.Position;
+            if (a.Line != b.Line) p = a.Line > b.Line ? a.Position : b.Position;
+            return new MplBoolean(a.Val > b.Val, l, p);
+        }
+
+        public int GetLine() => Line;
+
+        public int GetPosition() => Position;
     }
 }

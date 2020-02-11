@@ -37,15 +37,25 @@ namespace mpl.domain
             Position = position;
         }
 
-        public Definition(Part parent, string v)
+        public Definition(Part parent, string v, int line, int position)
         {
             _parent = parent;
-            _val = new MplString(v);
+            Line = line;
+            Position = position;
+            _val = new MplString(v, line, position);
         }
 
         public override void Run()
         {
-            _assignment?.Run();
+            if (_assignment == null)
+            {
+                _val = _val switch
+                {
+                    MplBoolean _ => new MplBoolean(false, Line, Position),
+                    MplInteger _ => new MplInteger(0, Line, Position),
+                    _ => new MplString("", Line, Position),
+                };
+            } else _assignment.Run();
         }
 
         public override Part GetParent() => _parent;
@@ -90,8 +100,8 @@ namespace mpl.domain
             _val = token.TokenString switch
             {
                 "int" => new MplInteger(0, token.Line, token.Position),
-                "bool" => new MplBoolean(false),
-                "string" => new MplString(""),
+                "bool" => new MplBoolean(false, token.Line, token.Position),
+                "string" => new MplString("", token.Line, token.Position),
                 _ => throw new InvalidSyntaxException($"Invalid type declaration: {token.TokenString}", token.Line, token.Position)
             };
             _state = DState.Typed;
@@ -125,7 +135,7 @@ namespace mpl.domain
 
         public void SetValue(IValue v)
         {
-            if (Locked) throw new RuntimeException($"Assignment to locked variable {Name}", Line, Position);
+            if (Locked) throw new RuntimeException($"Assignment to locked variable {Name}", v.GetLine(), v.GetPosition());
             _val = v;
         }
 

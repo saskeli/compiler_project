@@ -65,8 +65,8 @@ namespace mpl
 
         private static void OutputEx(string message, int line, int pos, string filePath)
         {
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine($"{message}\n");
+            Console.Write("-----------------------------------\n");
+            Console.Write($"{message}\n\n");
             using (StreamReader sr = new StreamReader(filePath))
             {
                 string prev = "";
@@ -76,10 +76,10 @@ namespace mpl
                     prev = codeLine;
                     codeLine = sr.ReadLine();
                 }
-                Console.WriteLine(prev);
-                Console.WriteLine(codeLine);
+                Console.Write($"{prev}\n");
+                Console.Write($"{codeLine}\n");
             }
-            Console.WriteLine($"{new string('-', pos < 1 ? 1 : pos - 1)}^");
+            Console.Write($"{new string('-', pos < 1 ? 1 : pos - 1)}^\n");
         }
 
         public class Options

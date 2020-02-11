@@ -1,26 +1,24 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using mpl.domain;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
-using mplTests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using mpl.domain;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class ProgramTests
     {
-        private OutMocker omock;
-        private InMocker imock;
+        private OutMocker _omock;
+        private InMocker _imock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            omock = new OutMocker();
-            imock = new InMocker();
+            _omock = new OutMocker(Encoding.ASCII);
+            _imock = new InMocker();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest1()
         {
             Program prog = new Program();
@@ -41,13 +39,13 @@ namespace mpl.domain.Tests
             prog.Add(new Token(TokenType.Name, 0, 0, "print"));
             prog.Add(new Token(TokenType.Name, 0, 0, "X"));
             prog.Add(new Token(TokenType.Control, 0, 0, ";"));
-            Console.SetOut(omock);
+            Console.SetOut(_omock);
             prog.Run();
-            Assert.AreEqual(1, omock.Output.Count);
-            Assert.AreEqual("16", omock.Output[0]);
+            Assert.AreEqual(1, _omock.Output.Count);
+            Assert.AreEqual("16", _omock.Output[0]);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest2()
         {
             Program prog = new Program();
@@ -99,13 +97,12 @@ namespace mpl.domain.Tests
             prog.Add(new Token(TokenType.Control, 0, 0, ")"));
             prog.Add(new Token(TokenType.Control, 0, 0, ";"));
 
-            imock.SetInput(new string[]{"4"});
-            Console.SetIn(imock);
-            Console.SetOut(omock);
+            _imock.SetInput(new[]{"4"});
+            Console.SetIn(_imock);
+            Console.SetOut(_omock);
             prog.Run();
-            Assert.AreEqual(9, omock.Output.Count);
-            string[] expectedOutput = new string[]
-            {
+            Assert.AreEqual(9, _omock.Output.Count);
+            string[] expectedOutput = {
                 "How many Times? ",
                 "0",
                 " : Hello, World!\n",
@@ -118,11 +115,11 @@ namespace mpl.domain.Tests
             };
             for (int i = 0; i < expectedOutput.Length; i++)
             {
-                Assert.AreEqual(expectedOutput[i], omock.Output[i]);
+                Assert.AreEqual(expectedOutput[i], _omock.Output[i]);
             }
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest3()
         {
             Program prog = new Program();
@@ -172,20 +169,19 @@ namespace mpl.domain.Tests
             prog.Add(new Token(TokenType.Name, 0, 0, "v"));
             prog.Add(new Token(TokenType.Control, 0, 0, ";"));
 
-            imock.SetInput(new string[] { "5" });
-            Console.SetIn(imock);
-            Console.SetOut(omock);
+            _imock.SetInput(new[] { "5" });
+            Console.SetIn(_imock);
+            Console.SetOut(_omock);
             prog.Run();
-            Assert.AreEqual(3, omock.Output.Count);
-            string[] expectedOutput = new string[]
-            {
+            Assert.AreEqual(3, _omock.Output.Count);
+            string[] expectedOutput = {
                 "Give a number ",
                 "The result is: ",
                 "120"
             };
             for (int i = 0; i < expectedOutput.Length; i++)
             {
-                Assert.AreEqual(expectedOutput[i], omock.Output[i]);
+                Assert.AreEqual(expectedOutput[i], _omock.Output[i]);
             }
         }
         

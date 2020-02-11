@@ -1,49 +1,44 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using mpl.domain;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using mplTests;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class DefinitionTests
     {
-        private PartMocker mock;
+        private PartMocker _mock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mock = new PartMocker();
-            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
-            mock.Definitions["bla"] = def;
-            mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
-            mock.Definitions["fuu"].SetValue(new MplBoolean(true));
-            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
-            mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
-            mock.Definitions["baz"].SetValue(new MplString("baz"));
+            _mock = new PartMocker();
+            Definition def = new Definition(_mock, 0, 0) { Name = "bla" };
+            _mock.Definitions["bla"] = def;
+            _mock.Definitions["bla"].SetValue(new MplBoolean(false, 0, 0));
+            _mock.Definitions["fuu"] = new Definition(_mock, 0, 0);
+            _mock.Definitions["fuu"].SetValue(new MplBoolean(true, 0, 0));
+            _mock.Definitions["bar"] = new Definition(_mock, 0, 0) { Name = "bar" };
+            _mock.Definitions["bar"].SetValue(new MplString("bar", 0, 0));
+            _mock.Definitions["baz"] = new Definition(_mock, 0, 0) { Name = "baz" };
+            _mock.Definitions["baz"].SetValue(new MplString("baz", 0, 0));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void DefinitionTest()
         {
-            Definition def = new Definition(mock, 4, 0, 0);
+            Definition def = new Definition(_mock, 4, 0, 0);
             Assert.IsTrue(def.GetValue() is MplInteger);
             Assert.AreEqual(4, ((MplInteger)def.GetValue()).Val);
 
-            def = new Definition(mock, "bla");
+            def = new Definition(_mock, "bla", 0, 0);
             Assert.IsTrue(def.GetValue() is MplString);
             Assert.AreEqual("bla", ((MplString)def.GetValue()).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest()
         {
-            Definition def = new Definition(mock, 0, 0);
+            Definition def = new Definition(_mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Nom"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
@@ -56,17 +51,17 @@ namespace mpl.domain.Tests
             Assert.AreEqual(2, ((MplInteger) def.GetValue()).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetParentTest()
         {
-            Definition def = new Definition(mock, 0, 0);
-            Assert.IsTrue(mock == def.GetParent());
+            Definition def = new Definition(_mock, 0, 0);
+            Assert.IsTrue(_mock == def.GetParent());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ExitTest()
         {
-            Definition def = new Definition(mock, 0, 0);
+            Definition def = new Definition(_mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "bool"));
@@ -75,41 +70,41 @@ namespace mpl.domain.Tests
             Assert.IsFalse(((MplBoolean) def.GetValue()).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetDefinitionTest()
         {
-            Definition def = new Definition(mock, 0, 0);
-            Assert.AreEqual(mock.Definitions["bla"], def.GetDefinition("bla"));
+            Definition def = new Definition(_mock, 0, 0);
+            Assert.AreEqual(_mock.Definitions["bla"], def.GetDefinition("bla"));
             Assert.IsNull(def.GetDefinition("Alice"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetValueTest()
         {
-            Definition def = new Definition(mock, 0, 0);
+            Definition def = new Definition(_mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
             Assert.AreEqual("", ((MplString) def.GetValue()).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void SetValueTest()
         {
-            Definition def = new Definition(mock, 0, 0);
+            Definition def = new Definition(_mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));
             def.Exit();
             def.Run();
-            def.SetValue(new MplString("Tomaatti"));
+            def.SetValue(new MplString("Tomaatti", 0, 0));
             Assert.AreEqual("Tomaatti", ((MplString)def.GetValue()).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetTypeTest()
         {
-            Definition def = new Definition(mock, 0, 0);
+            Definition def = new Definition(_mock, 0, 0);
             def.Add(new Token(TokenType.Name, 0, 0, "Alice"));
             def.Add(new Token(TokenType.Control, 0, 0, ":"));
             def.Add(new Token(TokenType.Name, 0, 0, "string"));

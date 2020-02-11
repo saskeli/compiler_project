@@ -26,10 +26,10 @@ namespace mpl.domain
                     _def.SetValue(new MplInteger(int.Parse(inp), _line, _position));
                     break;
                 case MplBoolean _:
-                    _def.SetValue(new MplBoolean(bool.Parse(inp)));
+                    _def.SetValue(new MplBoolean(bool.Parse(inp), _line, _position));
                     break;
                 default:
-                    _def.SetValue(new MplString(inp));
+                    _def.SetValue(new MplString(inp, _line, _position));
                     break;
             }
         }

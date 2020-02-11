@@ -1,33 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace mplTests
 {
     public class InMocker : TextReader
     {
         public List<string> Inp;
-        private int idx = 0;
+        private int _idx;
 
-        public InMocker(string[] inp)
+        public InMocker(IEnumerable<string> inp)
         {
-            this.Inp = new List<string>(inp);
+            Inp = new List<string>(inp);
         }
 
         public InMocker()
         {
-            this.Inp = new List<string>();
+            Inp = new List<string>();
         }
 
         public void SetInput(string[] inp)
         {
-            this.Inp = new List<string>(inp);
+            Inp = new List<string>(inp);
         }
 
         public override string ReadLine()
         {
-            return Inp[idx % Inp.Count];
+            string s = Inp[_idx % Inp.Count];
+            _idx++;
+            return s;
         }
 
 

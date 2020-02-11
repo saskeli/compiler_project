@@ -12,18 +12,18 @@ namespace mpl.domain
 
         public Token(TokenType tokenType, int line, int position, string tokenString)
         {
-            this.TokenType = tokenType;
-            this.Line = line;
-            this.Position = position;
-            this.TokenString = tokenString;
+            TokenType = tokenType;
+            Line = line;
+            Position = position;
+            TokenString = tokenString;
         }
 
         public Token(TokenType tokenType, int line, int position, char token)
         {
-            this.TokenType = tokenType;
-            this.Line = line;
-            this.Position = position;
-            this.TokenString = token.ToString();
+            TokenType = tokenType;
+            Line = line;
+            Position = position;
+            TokenString = token.ToString();
         }
 
         public bool Equals(Token other)

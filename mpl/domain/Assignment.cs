@@ -13,7 +13,7 @@ namespace mpl.domain
             Done,
             UnarySubPart,
             Op1SubPart,
-            Op2SubPart,
+            Op2SubPart
         }
 
         private enum Operator
@@ -105,12 +105,12 @@ namespace mpl.domain
                 Operator.Division => (MplInteger)val1 / (MplInteger)val2,
                 Operator.Equality => CalcEquality(val1, val2),
                 Operator.Subtraction => (MplInteger)val1 - (MplInteger)val2,
-                Operator.Multiplication => (MplInteger)val1 * (MplInteger)val2,
+                Operator.Multiplication => (MplInteger)val1 * (MplInteger)val2
             };
             _definition?.SetValue(Value);
         }
 
-        private IValue CalcEquality(IValue val1, IValue val2)
+        private static IValue CalcEquality(IValue val1, IValue val2)
         {
             return val1 switch
             {
@@ -120,7 +120,7 @@ namespace mpl.domain
             };
         }
 
-        private IValue CalcAdd(IValue val1, IValue val2)
+        private static IValue CalcAdd(IValue val1, IValue val2)
         {
             return val1 switch
             {
@@ -129,7 +129,7 @@ namespace mpl.domain
             };
         }
 
-        private IValue CalcLess(IValue val1, IValue val2)
+        private static IValue CalcLess(IValue val1, IValue val2)
         {
             return val1 switch
             {
@@ -232,7 +232,7 @@ namespace mpl.domain
                     if (CheckType()) _state = AState.Done;
                     return;
                 case TokenType.String:
-                    _def2 = new Definition(this, token.TokenString);
+                    _def2 = new Definition(this, token.TokenString, token.Line, token.Position);
                     if (CheckType()) _state = AState.Done;
                     return;
             }
@@ -243,9 +243,9 @@ namespace mpl.domain
             bool res = _operator switch
             {
                 Operator.Addition => (
-                    ((_def1?.GetType() ?? _sub1.GetType())
-                     == (_def2?.GetType() ?? _sub2.GetType()))
-                    && ((_def1?.GetType() ?? _sub1.GetType()) != Type.Bool)
+                    (_def1?.GetType() ?? _sub1.GetType())
+                    == (_def2?.GetType() ?? _sub2.GetType())
+                    && (_def1?.GetType() ?? _sub1.GetType()) != Type.Bool
                 ),
                 Operator.Negation => (_def1?.GetType() ?? _sub1.GetType()) == Type.Bool,
                 Operator.And => (
@@ -301,12 +301,12 @@ namespace mpl.domain
                 case TokenType.Name:
                     _def1 = GetDefinition(token.TokenString);
                     if (_def1 == null) throw new InvalidSyntaxException($"Use of undefined variable {token.TokenString}", token.Line, token.Position);
-                    if (_def1.GetValue() is MplBoolean)
-                    {
-                        _state = AState.Done;
-                        return;
-                    }
-                    throw new InvalidSyntaxException($"{token.TokenString} is not boolean. Invalid type for negation", token.Line, token.Position);
+                    if (!(_def1.GetValue() is MplBoolean))
+                        throw new InvalidSyntaxException(
+                            $"{token.TokenString} is not boolean. Invalid type for negation", token.Line,
+                            token.Position);
+                    _state = AState.Done;
+                    return;
                 default:
                     throw new InvalidSyntaxException($"{token.TokenString} is not boolean.", token.Line, token.Position);
             }
@@ -344,7 +344,7 @@ namespace mpl.domain
                     _state = AState.Operanded;
                     return;
                 case TokenType.String:
-                    _def1 = new Definition(this, token.TokenString);
+                    _def1 = new Definition(this, token.TokenString, token.Line, token.Position);
                     _state = AState.Operanded;
                     return;
             }
@@ -352,19 +352,15 @@ namespace mpl.domain
 
         public override bool Exit()
         {
-            switch (_state)
+            return _state switch
             {
-                case AState.Done:
-                case AState.Operanded:
-                    return true;
-                case AState.Op2SubPart:
-                    return _sub2.Exit();
-                case AState.Op1SubPart:
-                case AState.UnarySubPart:
-                    return _sub1.Exit();
-                default:
-                    return false;
-            }
+                AState.Done => true,
+                AState.Operanded => true,
+                AState.Op2SubPart => _sub2.Exit(),
+                AState.Op1SubPart => _sub1.Exit(),
+                AState.UnarySubPart => _sub1.Exit(),
+                _ => false
+            };
         }
 
         public override Definition GetDefinition(string name)

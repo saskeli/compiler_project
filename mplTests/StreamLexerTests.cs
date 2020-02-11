@@ -1,22 +1,19 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using mpl;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using mpl;
 using mpl.domain;
-using mplTests;
 
-namespace mpl.Tests
+namespace mplTests
 {
-    [TestClass()]
+    [TestClass]
     public class StreamLexerTests
     {
-        [TestMethod()]
+        [TestMethod]
         public void StreamLexerTest1()
         {
             ParserMock par = new ParserMock(0, false);
-            string inp = "var X : int := 4 + (6 * 2);\nprint X;";
+            const string inp = "var X : int := 4 + (6 * 2);\nprint X;";
             StreamReader sr = new StreamReader(new MemoryStream(Encoding.ASCII.GetBytes(inp)));
             StreamLexer lexer = new StreamLexer(sr, false, 0, par);
             lexer.Parse();
@@ -36,7 +33,7 @@ namespace mpl.Tests
                 new Token(TokenType.Control, 1, 27, ";"), 
                 new Token(TokenType.Name, 2, 5, "print"), 
                 new Token(TokenType.Name, 2, 7, "X"), 
-                new Token(TokenType.Control, 2, 8, ";"), 
+                new Token(TokenType.Control, 2, 8, ";") 
             };
             Assert.AreEqual(expectedTokens.Length, par.Tokens.Count);
             for (int i = 0; i < expectedTokens.Length; i++)
@@ -45,11 +42,11 @@ namespace mpl.Tests
             }
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void StreamLexerTest2()
         {
             ParserMock par = new ParserMock(0, false);
-            string inp = @"var nTimes : int := 0;
+            const string inp = @"var nTimes : int := 0;
 print ""How many times ? "";
 read nTimes;
 var x : int;
@@ -113,11 +110,11 @@ assert (x = nTimes);";
             }
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void StreamLexerTest3()
         {
             ParserMock par = new ParserMock(0, false);
-            string inp = @"print ""Give a number"";
+            const string inp = @"print ""Give a number"";
 var n : int;
 read n;
 var v : int := 1;
@@ -184,11 +181,11 @@ print v;";
             }
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void StreamLexerTest4()
         {
             ParserMock par = new ParserMock(0, false);
-            string inp = @"var X : int; //Loop var;
+            const string inp = @"var X : int; //Loop var;
 var sum : int;
 for X in /*here is a range*/ 0..14 do
  /* We are simply counting
@@ -228,7 +225,7 @@ print sum;";
                 new Token(TokenType.Control, 7, 8, ";"), 
                 new Token(TokenType.Name, 8, 5, "print"), 
                 new Token(TokenType.Name, 8, 9, "sum"), 
-                new Token(TokenType.Control, 8, 10, ";"), 
+                new Token(TokenType.Control, 8, 10, ";")
             };
             Assert.AreEqual(expectedTokens.Length, par.Tokens.Count);
             for (int i = 0; i < expectedTokens.Length; i++)

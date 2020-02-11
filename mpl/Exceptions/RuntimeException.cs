@@ -2,7 +2,7 @@
 
 namespace mpl.Exceptions
 {
-    class RuntimeException : Exception
+    public class RuntimeException : Exception
     {
 
         public int Line { get; }

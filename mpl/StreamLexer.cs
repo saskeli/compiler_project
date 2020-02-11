@@ -53,7 +53,7 @@ namespace mpl
             while (!_stream.EndOfStream)
             {
                 int c = _stream.Read();
-                char cc = (c >= 32 && c <= 126) ? (char) c : (char) 0;
+                char cc = c >= 32 && c <= 126 ? (char) c : (char) 0;
                 if (_debug > 1) Console.WriteLine($"Read {c} from stream, \"{cc}\".");
                 if (c == 10)
                 {
@@ -357,8 +357,8 @@ namespace mpl
             {
                 return Ctype.Control;
             }
-            string mess = $"Unsupported character encountered at line {_line}, position {_pos}.";
-            throw new UnsupportedCharacterException(mess, _line, _pos);
+            string mess = $"Unsupported character encountered at line {_line}, position {_pos + 1}.";
+            throw new UnsupportedCharacterException(mess, _line, _pos + 1);
         }
     }
 }

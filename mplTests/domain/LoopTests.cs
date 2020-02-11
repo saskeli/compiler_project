@@ -1,32 +1,27 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using mpl.domain;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using mplTests;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class LoopTests
     {
-        private PartMocker mock;
+        private PartMocker _mock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mock = new PartMocker();
-            mock.Definitions["bla"] = new Definition(mock, 0, 0) { Name = "bla" };
-            mock.Definitions["bla"].SetValue(new MplInteger(0, 0, 0));
-            mock.Definitions["fuu"] = new Definition(mock, 0, 0) { Name = "fuu" };
-            mock.Definitions["fuu"].SetValue(new MplInteger(0, 0, 0));
+            _mock = new PartMocker();
+            _mock.Definitions["bla"] = new Definition(_mock, 0, 0) { Name = "bla" };
+            _mock.Definitions["bla"].SetValue(new MplInteger(0, 0, 0));
+            _mock.Definitions["fuu"] = new Definition(_mock, 0, 0) { Name = "fuu" };
+            _mock.Definitions["fuu"].SetValue(new MplInteger(0, 0, 0));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void LoopTest()
         {
-            Loop loo = new Loop(mock, 0, 0);
+            Loop loo = new Loop(_mock, 0, 0);
             loo.Add(new Token(TokenType.Name, 0, 0, "bla"));
             loo.Add(new Token(TokenType.Name, 0, 0, "in"));
             loo.Add(new Token(TokenType.Name, 0, 0, "fuu"));
@@ -45,16 +40,16 @@ namespace mpl.domain.Tests
             loo.Add(new Token(TokenType.Name, 0, 0, "for"));
             loo.Exit();
             loo.Run();
-            int v = ((MplInteger) mock.Definitions["bla"].GetValue()).Val;
+            int v = ((MplInteger) _mock.Definitions["bla"].GetValue()).Val;
             Assert.AreEqual(6, v);
-            v = ((MplInteger) mock.Definitions["fuu"].GetValue()).Val;
+            v = ((MplInteger) _mock.Definitions["fuu"].GetValue()).Val;
             Assert.AreEqual(21, v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest()
         {
-            Loop loo = new Loop(mock, 0, 0);
+            Loop loo = new Loop(_mock, 0, 0);
             loo.Add(new Token(TokenType.Name, 0, 0, "bla"));
             loo.Add(new Token(TokenType.Name, 0, 0, "in"));
             loo.Add(new Token(TokenType.Name, 0, 0, "fuu"));
@@ -73,17 +68,17 @@ namespace mpl.domain.Tests
             loo.Add(new Token(TokenType.Name, 0, 0, "for"));
             loo.Exit();
             loo.Run();
-            int v = ((MplInteger)mock.Definitions["bla"].GetValue()).Val;
+            int v = ((MplInteger)_mock.Definitions["bla"].GetValue()).Val;
             Assert.AreEqual(-4, v);
-            v = ((MplInteger)mock.Definitions["fuu"].GetValue()).Val;
+            v = ((MplInteger)_mock.Definitions["fuu"].GetValue()).Val;
             Assert.AreEqual(-10, v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetParentTest()
         {
-            Loop loo = new Loop(mock, 0, 0);
-            Assert.AreSame(mock, loo.GetParent());
+            Loop loo = new Loop(_mock, 0, 0);
+            Assert.AreSame(_mock, loo.GetParent());
         }
 
     }

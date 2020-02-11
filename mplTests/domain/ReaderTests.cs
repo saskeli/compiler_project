@@ -1,78 +1,75 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using mpl.domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using mplTests;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class ReaderTests
     {
-        private PartMocker mock;
-        private InMocker imock;
+        private PartMocker _mock;
+        private InMocker _imock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mock = new PartMocker();
-            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
-            mock.Definitions["bla"] = def;
-            mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
-            mock.Definitions["fuu"].SetValue(new MplInteger(2, 0, 0));
-            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
-            mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
-            mock.Definitions["baz"].SetValue(new MplString("baz"));
+            _mock = new PartMocker();
+            Definition def = new Definition(_mock, 0, 0) { Name = "bla" };
+            _mock.Definitions["bla"] = def;
+            _mock.Definitions["bla"].SetValue(new MplBoolean(false, 0, 0));
+            _mock.Definitions["fuu"] = new Definition(_mock, 0, 0);
+            _mock.Definitions["fuu"].SetValue(new MplInteger(2, 0, 0));
+            _mock.Definitions["bar"] = new Definition(_mock, 0, 0) { Name = "bar" };
+            _mock.Definitions["bar"].SetValue(new MplString("bar", 0, 0));
+            _mock.Definitions["baz"] = new Definition(_mock, 0, 0) { Name = "baz" };
+            _mock.Definitions["baz"].SetValue(new MplString("baz", 0, 0));
 
-            imock = new InMocker();
+            _imock = new InMocker();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ReaderTest()
         {
-            imock.Inp.Add("POTATO");
-            Reader rea = new Reader(mock, 0, 0);
+            _imock.Inp.Add("POTATO");
+            Reader rea = new Reader(_mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "bar"));
             rea.Exit();
-            Console.SetIn(imock);
+            Console.SetIn(_imock);
             rea.Run();
-            string v = ((MplString) mock.Definitions["bar"].GetValue()).Val;
+            string v = ((MplString) _mock.Definitions["bar"].GetValue()).Val;
             Assert.AreEqual("POTATO", v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest()
         {
-            imock.Inp.Add("14");
-            Reader rea = new Reader(mock, 0, 0);
+            _imock.Inp.Add("14");
+            Reader rea = new Reader(_mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "fuu"));
             rea.Exit();
-            Console.SetIn(imock);
+            Console.SetIn(_imock);
             rea.Run();
-            int v = ((MplInteger) mock.Definitions["fuu"].GetValue()).Val;
+            int v = ((MplInteger) _mock.Definitions["fuu"].GetValue()).Val;
             Assert.AreEqual(14, v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetParentTest()
         {
-            Reader rea = new Reader(mock, 0, 0);
-            Assert.AreSame(mock, rea.GetParent());
+            Reader rea = new Reader(_mock, 0, 0);
+            Assert.AreSame(_mock, rea.GetParent());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void AddTest()
         {
-            imock.Inp.Add("True");
-            Reader rea = new Reader(mock, 0, 0);
+            _imock.Inp.Add("True");
+            Reader rea = new Reader(_mock, 0, 0);
             rea.Add(new Token(TokenType.Name, 0, 0, "bla"));
             rea.Exit();
-            Console.SetIn(imock);
+            Console.SetIn(_imock);
             rea.Run();
-            bool v = ((MplBoolean)mock.Definitions["bla"].GetValue()).Val;
+            bool v = ((MplBoolean)_mock.Definitions["bla"].GetValue()).Val;
             Assert.IsTrue(v);
         }
 

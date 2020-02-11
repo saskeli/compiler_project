@@ -1,50 +1,46 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using mpl.domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using mpl.Exceptions;
-using mplTests;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class AssignmentTests
     {
-        private PartMocker mock;
+        private PartMocker _mock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mock = new PartMocker();
-            Definition def = new Definition(mock, 0, 0) {Name = "bla"};
-            mock.Definitions["bla"] = def;
-            mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
-            mock.Definitions["fuu"].SetValue(new MplBoolean(true));
-            mock.Definitions["bar"] = new Definition(mock, 0, 0) {Name = "bar"};
-            mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
-            mock.Definitions["baz"].SetValue(new MplString("baz"));
+            _mock = new PartMocker();
+            Definition def = new Definition(_mock, 0, 0) {Name = "bla"};
+            _mock.Definitions["bla"] = def;
+            _mock.Definitions["bla"].SetValue(new MplBoolean(false, 0, 0));
+            _mock.Definitions["fuu"] = new Definition(_mock, 0, 0);
+            _mock.Definitions["fuu"].SetValue(new MplBoolean(true, 0, 0));
+            _mock.Definitions["bar"] = new Definition(_mock, 0, 0) {Name = "bar"};
+            _mock.Definitions["bar"].SetValue(new MplString("bar", 0, 0));
+            _mock.Definitions["baz"] = new Definition(_mock, 0, 0) { Name = "baz" };
+            _mock.Definitions["baz"].SetValue(new MplString("baz", 0, 0));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void AssignmentTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             Part par = ass.GetParent();
-            Assert.IsTrue(mock == par, "The mock instance should be returned by getParent()");
+            Assert.IsTrue(_mock == par, "The mock instance should be returned by getParent()");
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void AssignmentOverloadTest()
         {
-            Definition d = new Definition(mock, 0, 0) {Name = "bar"};
+            Definition d = new Definition(_mock, 0, 0) {Name = "bar"};
             d.SetValue(new MplInteger(4, 0, 0));
-            mock.Definitions["bar"] = d;
-            Assignment ass = new Assignment(mock.GetDefinition("bar"), mock, 0, 0);
+            _mock.Definitions["bar"] = d;
+            Assignment ass = new Assignment(_mock.GetDefinition("bar"), _mock, 0, 0);
             Part par = ass.GetParent();
-            Assert.IsTrue(mock == par, "The mock instance should be returned by getParent()");
+            Assert.IsTrue(_mock == par, "The mock instance should be returned by getParent()");
             ass.Add(new Token(TokenType.Number, 0, 0, "6"));
             ass.Exit();
             ass.Run();
@@ -52,10 +48,10 @@ namespace mpl.domain.Tests
             Assert.IsTrue(v == 6, $"Val should be 6. Got {v}.");
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void NegationTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Control,  0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "1"));
@@ -68,10 +64,10 @@ namespace mpl.domain.Tests
             Assert.IsTrue(v, $"!(2 = 1) should be true. Got {v}");
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void SimpleAssignmentTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Number, 0, 0, "2"));
             ass.Exit();
             ass.Run();
@@ -79,10 +75,10 @@ namespace mpl.domain.Tests
             Assert.AreEqual(2, v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void TestLess()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Number, 0, 0, "1"));
             ass.Add(new Token(TokenType.Control, 0, 0, "<"));
             ass.Add(new Token(TokenType.Number, 0, 0, "2"));
@@ -92,10 +88,10 @@ namespace mpl.domain.Tests
             Assert.IsTrue(v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void DeepAssignmentTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "1"));
@@ -124,33 +120,33 @@ namespace mpl.domain.Tests
             Assert.AreEqual(6, v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected line terminator. Not 4")]
         public void CompletedAssignmentAddTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.String, 0, 0, "fuu"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.String, 0, 0, "bar"));
             ass.Add(new Token(TokenType.Number, 0, 0, "4"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Invalid TokenString for binary operator )")]
         public void Subpart2HangingParen()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.String, 0, 0, "bar"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void NamedSecondOperandTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Name, 0, 0, "bar"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.Name, 0, 0, "baz"));
@@ -160,12 +156,12 @@ namespace mpl.domain.Tests
             Assert.AreEqual("barbaz", v);
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Invalid closing paren\"")]
         public void Sub2BadParenTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Number, 0, 0, "1"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
@@ -174,106 +170,106 @@ namespace mpl.domain.Tests
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Invalid closing paren\"")]
         public void Sub1BadParenTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "("));
             ass.Add(new Token(TokenType.Number, 0, 0, "1"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Use of undefined variable Alice\"")]
         public void UndefinedSecondOperand()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Name, 0, 0, "bar"));
             ass.Add(new Token(TokenType.Control, 0, 0, "+"));
             ass.Add(new Token(TokenType.Name, 0, 0, "Alice"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Use of undefined variable Alice\"")]
         public void UndefinedFirstOperand()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Name, 0, 0, "Alice"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Expected binary operator. Got Alice\"")]
         public void InvalidBinaryOperatorTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Number, 0, 0, "15"));
             ass.Add(new Token(TokenType.Name, 0, 0, "Alice"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Expected binary operator. Got )\"")]
         public void InvalidOperatorTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Number, 0, 0, "15"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Invalid TokenString for body of negation )\"")]
         public void InvalidTokenInNegationTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Control, 0, 0, ")"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void NegationOfDefinition()
         {
-            Assignment ass = new Assignment(mock.Definitions["bla"], mock, 0, 0);
+            Assignment ass = new Assignment(_mock.Definitions["bla"], _mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Name, 0, 0, "bla"));
             ass.Exit();
             ass.Run();
-            Assert.IsTrue(((MplBoolean)mock.Definitions["bla"].GetValue()).Val);
+            Assert.IsTrue(((MplBoolean)_mock.Definitions["bla"].GetValue()).Val);
             Assert.IsTrue(((MplBoolean) ass.Value).Val);
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"Use of undefined variable Alice\"")]
         public void UndefinedVariableInNegationTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Name, 0, 0, "Alice"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"bar is not boolean. Invalid type for negation\"")]
         public void InvalidVariableInNegationTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Name, 0, 0, "bar"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         [ExpectedException(typeof(InvalidSyntaxException),
             "Expected \"4 is not boolean.\"")]
         public void InvalidLiteralInNegationTest()
         {
-            Assignment ass = new Assignment(mock, 0, 0);
+            Assignment ass = new Assignment(_mock, 0, 0);
             ass.Add(new Token(TokenType.Control, 0, 0, "!"));
             ass.Add(new Token(TokenType.Number, 0, 0, "4"));
         }

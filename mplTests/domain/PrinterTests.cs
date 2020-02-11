@@ -1,85 +1,83 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using mpl.domain;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
-using mplTests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using mpl.domain;
 
-namespace mpl.domain.Tests
+namespace mplTests.domain
 {
-    [TestClass()]
+    [TestClass]
     public class PrinterTests
     {
-        private PartMocker mock;
-        private OutMocker omock;
+        private PartMocker _mock;
+        private OutMocker _omock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mock = new PartMocker();
-            Definition def = new Definition(mock, 0, 0) { Name = "bla" };
-            mock.Definitions["bla"] = def;
-            mock.Definitions["bla"].SetValue(new MplBoolean(false));
-            mock.Definitions["fuu"] = new Definition(mock, 0, 0);
-            mock.Definitions["fuu"].SetValue(new MplBoolean(true));
-            mock.Definitions["bar"] = new Definition(mock, 0, 0) { Name = "bar" };
-            mock.Definitions["bar"].SetValue(new MplString("bar"));
-            mock.Definitions["baz"] = new Definition(mock, 0, 0) { Name = "baz" };
-            mock.Definitions["baz"].SetValue(new MplString("baz"));
+            _mock = new PartMocker();
+            Definition def = new Definition(_mock, 0, 0) { Name = "bla" };
+            _mock.Definitions["bla"] = def;
+            _mock.Definitions["bla"].SetValue(new MplBoolean(false, 0, 0));
+            _mock.Definitions["fuu"] = new Definition(_mock, 0, 0);
+            _mock.Definitions["fuu"].SetValue(new MplBoolean(true, 0, 0));
+            _mock.Definitions["bar"] = new Definition(_mock, 0, 0) { Name = "bar" };
+            _mock.Definitions["bar"].SetValue(new MplString("bar", 0, 0));
+            _mock.Definitions["baz"] = new Definition(_mock, 0, 0) { Name = "baz" };
+            _mock.Definitions["baz"].SetValue(new MplString("baz", 0, 0));
 
-            omock = new OutMocker();
+            _omock = new OutMocker(Encoding.ASCII);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void PrinterTest()
         {
-            Printer pri = new Printer(mock, 0, 0);
+            Printer pri = new Printer(_mock, 0, 0);
             pri.Add(new Token(TokenType.Name, 0, 0, "bar"));
             pri.Add(new Token(TokenType.Control, 0, 0, "+"));
             pri.Add(new Token(TokenType.String, 0, 0, "rab"));
             pri.Exit();
-            Console.SetOut(omock);
+            Console.SetOut(_omock);
             pri.Run();
-            Assert.AreEqual(1, omock.Output.Count);
-            Assert.AreEqual("barrab", omock.Output[0]);
-            omock.Output.Clear();
+            Assert.AreEqual(1, _omock.Output.Count);
+            Assert.AreEqual("barrab", _omock.Output[0]);
+            _omock.Output.Clear();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void RunTest()
         {
-            Printer pri = new Printer(mock, 0, 0);
+            Printer pri = new Printer(_mock, 0, 0);
             pri.Add(new Token(TokenType.Number, 0, 0, "4"));
             pri.Add(new Token(TokenType.Control, 0, 0, "-"));
             pri.Add(new Token(TokenType.Number, 0, 0, "3"));
             pri.Exit();
-            Console.SetOut(omock);
+            Console.SetOut(_omock);
             pri.Run();
-            Assert.AreEqual(1, omock.Output.Count);
-            Assert.AreEqual("1", omock.Output[0]);
-            omock.Output.Clear();
+            Assert.AreEqual(1, _omock.Output.Count);
+            Assert.AreEqual("1", _omock.Output[0]);
+            _omock.Output.Clear();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void GetParentTest()
         {
-            Printer pri = new Printer(mock, 0, 0);
-            Assert.AreSame(mock, pri.GetParent());
+            Printer pri = new Printer(_mock, 0, 0);
+            Assert.AreSame(_mock, pri.GetParent());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void AddTest()
         {
-            Printer pri = new Printer(mock, 0, 0);
+            Printer pri = new Printer(_mock, 0, 0);
             pri.Add(new Token(TokenType.Name, 0, 0, "bla"));
             pri.Add(new Token(TokenType.Control, 0, 0, "&"));
             pri.Add(new Token(TokenType.Name, 0, 0, "fuu"));
             pri.Exit();
-            Console.SetOut(omock);
+            Console.SetOut(_omock);
             pri.Run();
-            Assert.AreEqual(1, omock.Output.Count);
-            Assert.AreEqual("False", omock.Output[0]);
-            omock.Output.Clear();
+            Assert.AreEqual(1, _omock.Output.Count);
+            Assert.AreEqual("False", _omock.Output[0]);
+            _omock.Output.Clear();
         }
     }
 }

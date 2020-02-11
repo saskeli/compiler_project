@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using mpl.Exceptions;
 
 namespace mpl.domain
@@ -207,11 +208,13 @@ namespace mpl.domain
 
         public override bool Exit()
         {
-            if (_current != null && _current.Exit())
+            if (_current == null || !_current.Exit()) return _state == LState.For;
+            if (_current is Definition definition)
             {
-                _subParts.Add(_current);
-                _current = null;
+                _definitions[definition.Name] = _subParts.Count;
             }
+            _subParts.Add(_current);
+            _current = null;
 
             return _state == LState.For;
         }

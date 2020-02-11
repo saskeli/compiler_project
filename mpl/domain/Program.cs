@@ -39,15 +39,13 @@ namespace mpl.domain
                     throw new InvalidSyntaxException("Empty statement. Nothing to terminate", token.Line, token.Position);
                 }
 
-                if (_current.Exit())
+                if (!_current.Exit()) return;
+                if (_current is Definition definition)
                 {
-                    if (_current is Definition definition)
-                    {
-                        Scope.Add(definition.Name, _subparts.Count);
-                    }
-                    _subparts.Add(_current);
-                    _current = null;
+                    Scope.Add(definition.Name, _subparts.Count);
                 }
+                _subparts.Add(_current);
+                _current = null;
                 return;
             }
             if (_current != null)
