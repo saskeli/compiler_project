@@ -83,7 +83,7 @@ A limited set of operators include (only!) the ones listed below.
 
 In the syntax definition the symbol <*op*> stands for a binary operator symbol. There is one unary operator symbol (<*unary_op*>): '!', meaning the logical not operation. The operator symbol '&' stands for the logical and operation. Note that in Mini-PL, '=' is the equal operator &mdash; not assignment. 
 
-The predefined type names (e.g.,"**int**") are reserved keywords, so they cannot be used as (arbitrary) identifiers. In a Mini-PL program, a comment may appear between any two tokens. There are two forms of comments: one starts with "/*", ends with "*/", can extend over multiple lines, and may be nested. The other comment alternative begins with "//" and goes only to the end of the line. 
+The predefined type names (e.g.,"**int**") are reserved keywords, so they cannot be used as (arbitrary) identifiers. In a Mini-PL program, a comment may appear between any two tokens. There are two forms of comments: one starts with "/\*", ends with "\*/", can extend over multiple lines, and may be nested. The other comment alternative begins with "//" and goes only to the end of the line. 
 
 ### Sample programs     
 
