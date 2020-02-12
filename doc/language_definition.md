@@ -41,35 +41,35 @@ A **for** statement iterates over the consequent values from a specified integer
 
 The syntax definition is given in so-called *Extended Backus-Naur* form (EBNF). In the following Mini-PL grammar, the notation X* means 0, 1, or more repetitions of the item X. The '|' operator is used to define alternative constructs. Parentheses may be used to group together a sequence of related symbols. Brackets ("[" "]") may be used to enclose optional parts (i.e., zero or one occurrence). Reserved keywords are marked bold (as **"var"**). Operators, separators, and other single or multiple character tokens are enclosed within quotes (as: ".."). Note that nested expressions are always fully parenthesized to specify the execution order of operations.  
 
-```
-<prog>   ::=  <stmts> 
+<pre>
+&lt;prog&gt;   ::=  &lt;stmts&gt;
 
-<stmts>  ::=  <stmt> ";" ( <stmt> ";" )* 
+&lt;stmts&gt;  ::=  &lt;stmt&gt; ";" ( &lt;stmt&gt; ";" )* 
 
-<stmt>   ::=  "var" <var_ident> ":" <type> [ ":=" <expr> ] 
-          |   <var_ident> ":=" <expr> 
-          |   "for" <var_ident> "in" <expr> ".." <expr> "do" 
-                 <stmts> "end" "for"             
-          |   "read" <var_ident>             
-          |   "print" <expr>             
-          |   "assert" "(" <expr> ")" 
+&lt;stmt&gt;   ::=  "var" &lt;var_ident&gt; ":" &lt;type&gt; [ ":=" &lt;expr&gt; ] 
+          |   &lt;var_ident&gt; ":=" &lt;expr&gt; 
+          |   "<b>for</b>" &lt;var_ident&gt; "<b>in</b>" &lt;expr&gt; ".." &lt;expr&gt; "<b>do</b>" 
+                 &lt;stmts&gt; "<b>end</b>" "<b>for</b>"
+          |   "<b>read</b>" &lt;var_ident&gt;
+          |   "<b>print</b>" &lt;expr&gt;
+          |   "<b>assert</b>" "(" &lt;expr&gt; ")" 
 
-<expr>   ::=  <opnd> <op> <opnd> 
-          |   [ <unary_op> ] <opnd> 
+&lt;expr&gt;   ::=  &lt;opnd&gt; &lt;op&gt; &lt;opnd&gt; 
+          |   [ &lt;unary_op&gt; ] &lt;opnd&gt; 
 
-<opnd>   ::=  <int>           
-          |   <string>           
-          |   <var_ident>           
-          |   "(" expr ")" 
+&lt;opnd&gt;   ::=  &lt;int&gt;           
+          |   &lt;string&gt;
+          |   &lt;var_ident&gt;
+          |   "(" &lt;expr&gt; ")" 
 
-<type>   ::=  "int" | "string" | "bool" 
+&lt;type&gt;   ::=  "<b>int</b>" | "<b>string</b>" | "<b>bool</b>" 
 
-<var_ident> ::= <ident> 
+&lt;var_ident&gt; ::= &lt;ident&gt; 
 
-<reserved keyword> ::=               
-               "var" | "for" | "end" | "in" | "do" | "read" |               
-               "print" | "int" | "string" | "bool" | "assert"
-```
+&lt;reserved_keyword&gt; ::=               
+               "<b>var</b>" | "<b>for</b>" | "<b>end</b>" | "<b>in</b>" | "<b>do</b>" | "<b>read</b>" |               
+               "<b>print</b>" | "<b>int</b>" | "<b>string</b>" | "<b>bool</b>" | "<b>assert</b>"
+</pre>
 
 ## Lexical elements
 
