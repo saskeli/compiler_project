@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using mpl.domain;
@@ -23,31 +24,35 @@ namespace mpl
         private readonly StreamReader _stream;
         private readonly bool _verbose;
         private readonly int _debug;
+        private readonly bool _multiError;
         private readonly TokenParser _tokenParser;
+        private readonly List<Exception> _exceptions = new List<Exception>();
         private State _state = State.Empty;
         private int _line = 1;
         private int _pos;
         private bool _lastSlash;
+        private bool _lastStar;
 
-        public StreamLexer(StreamReader stream, bool verbose, int debug)
+        public StreamLexer(StreamReader stream, bool verbose, int debug, bool multiError)
         {
             _stream = stream;
             _verbose = verbose;
             _debug = debug;
+            _multiError = multiError;
             _tokenParser = new TokenParser(debug, verbose);
         }
 
-        public StreamLexer(StreamReader stream, bool verbose, int debug, TokenParser parser)
+        public StreamLexer(StreamReader stream, bool verbose, int debug, bool multiError, TokenParser parser)
         {
             _stream = stream;
             _verbose = verbose;
             _debug = debug;
+            _multiError = multiError;
             _tokenParser = parser;
         }
 
         public Program Parse()
         {
-            bool lastStar = false;
             StringBuilder sb = new StringBuilder();
             if (_verbose || _debug > 0) Console.WriteLine("Reading input stream");
             while (!_stream.EndOfStream)
@@ -55,82 +60,128 @@ namespace mpl
                 int c = _stream.Read();
                 char cc = c >= 32 && c <= 126 ? (char) c : (char) 0;
                 if (_debug > 1) Console.WriteLine($"Read {c} from stream, \"{cc}\".");
-                if (c == 10)
+                try
                 {
-                    if (_state == State.LineComment) _state = State.Empty;
-                    sb = _state switch
+                    sb = ProcessCharacter(c, cc, sb);
+                }
+                catch (Exception e)
+                {
+                    if (!_multiError) throw;
+                    if (e is InvalidSyntaxException ||
+                        e is UnexpectedCharacterException ||
+                        e is UnsupportedCharacterException)
                     {
-                        State.Empty => StateEmpty(Ctype.Whitespace, cc, sb),
-                        State.LiteralInt => StateLiteralInt(Ctype.Whitespace, cc, sb),
-                        State.Control => StateControl(Ctype.Whitespace, cc, sb),
-                        State.Name => StateName(Ctype.Whitespace, cc, sb),
-                        _ => sb
-                    };
-                    _line++;
-                    _pos = 0;
-                    continue;
+                        _exceptions.Add(e);
+                        _state = State.Empty;
+                        sb = new StringBuilder();
+                        _lastSlash = _lastStar = false;
+                    }
+                    else throw;
                 }
-
-                // Switch for states that should not be handled based on character type
-                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-                switch (_state)
-                {
-                    case State.LineComment: 
-                        continue;
-                    case State.BlockComment:
-                        if (lastStar && cc == '/') _state = State.Empty;
-                        lastStar = cc == '*';
-                        _pos++;
-                        continue;
-                    case State.Escaped:
-                        sb = AddToString(sb, cc);
-                        _state = State.LiteralString;
-                        _pos++;
-                        continue;
-                    case State.LiteralString:
-                        _pos++;
-                        switch (cc)
-                        {
-                            case '\\':
-                                _state = State.Escaped;
-                                break;
-                            case '"':
-                                _state = State.Empty;
-                                _tokenParser.ParseToken(new Token(TokenType.String, _line, _pos, sb.ToString()));
-                                sb = new StringBuilder();
-                                break;
-                            default:
-                                sb.Append(cc);
-                                break;
-                        }
-                        continue;
-                    default:
-                        if (cc == '"')
-                        {
-                            _pos++;
-                            sb = StartString(sb);
-                            continue;
-                        }
-                        break;
-                }
-
-                Ctype ctype = CharacterType(c);
-                sb = _state switch
-                {
-                    State.Empty => StateEmpty(ctype, cc, sb),
-                    State.LiteralInt => StateLiteralInt(ctype, cc, sb),
-                    State.Control => StateControl(ctype, cc, sb),
-                    State.Name => StateName(ctype, cc, sb),
-                    _ => sb
-                };
-                _pos++;
+                
             }
             if (_verbose || _debug > 0) Console.WriteLine("Reached end of stream");
             if (_state == State.Control && sb.Length > 0)
             {
-                SplitControls(sb.ToString());
+                try
+                {
+                    SplitControls(sb.ToString());
+                }
+                catch (Exception e)
+                {
+                    if (!_multiError) throw;
+                    if (e is InvalidSyntaxException ||
+                        e is UnexpectedCharacterException ||
+                        e is UnsupportedCharacterException)
+                    {
+                        _exceptions.Add(e);
+                        _state = State.Empty;
+                        sb = new StringBuilder();
+                        _lastSlash = _lastStar = false;
+                    }
+                    else throw;
+                }
+                
             }
+            if (_multiError && _exceptions.Count > 0)
+                throw new MultiException(_exceptions);
             return _tokenParser.GetProgram();
+        }
+
+        private StringBuilder ProcessCharacter(int c, char cc, StringBuilder sb)
+        {
+            if (c == 10)
+            {
+                if (_state == State.LineComment) _state = State.Empty;
+                sb = _state switch
+                {
+                    State.Empty => StateEmpty(Ctype.Whitespace, cc, sb),
+                    State.LiteralInt => StateLiteralInt(Ctype.Whitespace, cc, sb),
+                    State.Control => StateControl(Ctype.Whitespace, cc, sb),
+                    State.Name => StateName(Ctype.Whitespace, cc, sb),
+                    _ => sb
+                };
+                _line++;
+                _pos = 0;
+                return sb;
+            }
+
+            // Switch for states that should not be handled based on character type
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch (_state)
+            {
+                case State.LineComment:
+                    return sb;
+                case State.BlockComment:
+                    if (_lastStar && cc == '/') _state = State.Empty;
+                    _lastStar = cc == '*';
+                    _pos++;
+                    return sb;
+                case State.Escaped:
+                    sb = AddToString(sb, cc);
+                    _state = State.LiteralString;
+                    _pos++;
+                    return sb;
+                case State.LiteralString:
+                    _pos++;
+                    switch (cc)
+                    {
+                        case '\\':
+                            _state = State.Escaped;
+                            break;
+                        case '"':
+                            _state = State.Empty;
+                            _tokenParser.ParseToken(new Token(TokenType.String, _line, _pos, sb.ToString()));
+                            sb = new StringBuilder();
+                            break;
+                        default:
+                            sb.Append(cc);
+                            break;
+                    }
+
+                    return sb;
+                default:
+                    if (cc == '"')
+                    {
+                        _pos++;
+                        sb = StartString(sb);
+                        return sb;
+                    }
+
+                    break;
+            }
+
+            Ctype ctype = CharacterType(c);
+            sb = _state switch
+            {
+                State.Empty => StateEmpty(ctype, cc, sb),
+                State.LiteralInt => StateLiteralInt(ctype, cc, sb),
+                State.Control => StateControl(ctype, cc, sb),
+                State.Name => StateName(ctype, cc, sb),
+                _ => sb
+            };
+            _pos++;
+            return sb;
         }
 
         private StringBuilder StartString(StringBuilder sb)

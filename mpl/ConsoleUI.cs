@@ -22,7 +22,7 @@ namespace mpl
             {
                 using (StreamReader sr = new StreamReader(File.OpenRead(options.File)))
                 {
-                    StreamLexer parser = new StreamLexer(sr, options.Verbose, options.Debug);
+                    StreamLexer parser = new StreamLexer(sr, options.Verbose, options.Debug, options.MultiError);
                     Program prog = parser.Parse();
                     prog.Run();
                 }
@@ -55,12 +55,54 @@ namespace mpl
                         UnsupportedCharacterException usce = exception;
                         OutputEx(usce.Message, usce.Line, usce.Position, options.File);
                         break;
+                    case MultiException exception:
+                        MultiException me = exception;
+                        OutputMultiEx(me, options.File);
+                        break;
                     default:
                         throw;
                 }
             }
 
             return 0;
+        }
+
+        private static void OutputMultiEx(MultiException me, string filePath)
+        {
+            Console.Write("-----------------------------------\n");
+            Console.Write($"Encountered {me.Exceptions.Count} exceptions during parsing:\n");
+            foreach (Exception ex in me.Exceptions)
+            {
+                switch (ex)
+                {
+                    case InvalidSyntaxException exception:
+                        InvalidSyntaxException ise = exception;
+                        OutputEx(ise.Message, ise.Line, ise.Position, filePath);
+                        break;
+                    case AssertionException exception:
+                        AssertionException ae = exception;
+                        OutputEx(ae.Message, ae.Line, ae.Position, filePath);
+                        break;
+                    case MplDivideByZeroException exception:
+                        MplDivideByZeroException mdbze = exception;
+                        OutputEx(mdbze.Message, mdbze.Line, mdbze.Position, filePath);
+                        break;
+                    case RuntimeException exception:
+                        RuntimeException rte = exception;
+                        OutputEx(rte.Message, rte.Line, rte.Position, filePath);
+                        break;
+                    case UnexpectedCharacterException exception:
+                        UnexpectedCharacterException uece = exception;
+                        OutputEx(uece.Message, uece.Line, uece.Position, filePath);
+                        break;
+                    case UnsupportedCharacterException exception:
+                        UnsupportedCharacterException usce = exception;
+                        OutputEx(usce.Message, usce.Line, usce.Position, filePath);
+                        break;
+                    default:
+                        throw ex;
+                }
+            }
         }
 
         private static void OutputEx(string message, int line, int pos, string filePath)
@@ -91,6 +133,10 @@ namespace mpl
             [Option('d', "debug", Required = false, Default = 0,
                 HelpText = "Enable detailed diagnostic messages")]
             public int Debug { get; set; }
+
+            [Option('m', "multi-error", Required = false, Default = false,
+                HelpText = "Report multiple errors during single run.")]
+            public bool MultiError { get; set; }
 
             [Value(0, Required = true, MetaName = "file",
                 HelpText = "input Mini-PL source code file. Required")]

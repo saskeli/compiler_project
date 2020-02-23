@@ -2,7 +2,7 @@
   "profiles": {
     "mpl": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\mpl\\mpl\\fib.mpl"
+      "commandLineArgs": "D:\\mpl\\mpl\\bla.mpl -m"
     }
   }
 }

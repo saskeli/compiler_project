@@ -99,6 +99,12 @@ namespace mpl.domain
             };
         }
 
+        public void NullOut()
+        {
+            _current = null;
+            _newAssign = false;
+        }
+
         public Program GetProgram()
         {
             if (_current != null)

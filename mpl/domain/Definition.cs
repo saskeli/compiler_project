@@ -53,7 +53,7 @@ namespace mpl.domain
                 {
                     MplBoolean _ => new MplBoolean(false, Line, Position),
                     MplInteger _ => new MplInteger(0, Line, Position),
-                    _ => new MplString("", Line, Position),
+                    _ => new MplString("", Line, Position)
                 };
             } else _assignment.Run();
         }

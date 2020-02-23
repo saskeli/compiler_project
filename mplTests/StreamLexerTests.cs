@@ -15,7 +15,7 @@ namespace mplTests
             ParserMock par = new ParserMock(0, false);
             const string inp = "var X : int := 4 + (6 * 2);\nprint X;";
             StreamReader sr = new StreamReader(new MemoryStream(Encoding.ASCII.GetBytes(inp)));
-            StreamLexer lexer = new StreamLexer(sr, false, 0, par);
+            StreamLexer lexer = new StreamLexer(sr, false, 0, false, par);
             lexer.Parse();
             Token[] expectedTokens = {
                 new Token(TokenType.Name, 1, 3, "var"), 
@@ -56,7 +56,7 @@ for x in 0..nTimes-1 do
 end for;
 assert (x = nTimes);";
             StreamReader sr = new StreamReader(new MemoryStream(Encoding.ASCII.GetBytes(inp)));
-            StreamLexer lexer = new StreamLexer(sr, false, 0, par);
+            StreamLexer lexer = new StreamLexer(sr, false, 0, false, par);
             lexer.Parse();
             Token[] expectedTokens = {
                 new Token(TokenType.Name, 1, 3, "var"),
@@ -125,7 +125,7 @@ end for;
 print ""The result is: "";
 print v;";
             StreamReader sr = new StreamReader(new MemoryStream(Encoding.ASCII.GetBytes(inp)));
-            StreamLexer lexer = new StreamLexer(sr, false, 0, par);
+            StreamLexer lexer = new StreamLexer(sr, false, 0, false, par);
             lexer.Parse();
             Token[] expectedTokens = {
                 new Token(TokenType.Name, 1, 5, "print"),
@@ -194,7 +194,7 @@ for X in /*here is a range*/ 0..14 do
 end for;
 print sum;";
             StreamReader sr = new StreamReader(new MemoryStream(Encoding.ASCII.GetBytes(inp)));
-            StreamLexer lexer = new StreamLexer(sr, false, 0, par);
+            StreamLexer lexer = new StreamLexer(sr, false, 0, false, par);
             lexer.Parse();
             Token[] expectedTokens = {
                 new Token(TokenType.Name, 1, 3, "var"),
