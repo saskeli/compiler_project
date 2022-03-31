@@ -424,7 +424,7 @@ namespace mpl
                     sb.Append(cc);
                     break;
                 case Ctype.Control:
-                    _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString()));
+                    _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString().ToLower()));
                     if (cc == '/') _lastSlash = true;
                     if (cc == '{') _lastCurl = true;
                     sb = new StringBuilder();
@@ -432,7 +432,7 @@ namespace mpl
                     _state = State.Control;
                     break;
                 case Ctype.Whitespace:
-                    _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString()));
+                    _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString().ToLower()));
                     sb = new StringBuilder();
                     _state = State.Empty;
                     break;

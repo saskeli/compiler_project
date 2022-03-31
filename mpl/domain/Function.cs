@@ -7,12 +7,22 @@ namespace mpl.domain
     public class Function : Part
     {
         private Part _current;
+        private Part _parent;
         private readonly List<Part> _subparts = new List<Part>();
         public Dictionary<string, int> Scope = new Dictionary<string, int>();
         private int _line;
         private int _pos;
         private bool _newAssign;
         private string _name = null;
+        private bool _returns = false; 
+
+        public Function(Part parent, int line, int position, bool returns)
+        {
+            _parent = parent;
+            _line = line;
+            _pos = position; 
+            _returns = returns;
+        }
 
         public override void Run()
         {

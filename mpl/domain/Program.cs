@@ -7,35 +7,38 @@ namespace mpl.domain
     public class Program : Part
     {
         private Part _current = null;
+        private Part _main = null;
         private readonly List<Part> _functions = new List<Part>();
-        private readonly List<Part> _subparts = new List<Part>();
         private int _line;
         private int _pos;
         private bool _got_prog = false;
         private string _name = null;
         private bool _got_name = false;
         private bool _terminated = false;
+        private bool _in_main = false;
 
         public override void Run()
         {
             if (_terminated)
             {
-                foreach (Part part in _subparts)
-                {
-                    part.Run();
-                }
-            } else 
+                if (_main != null)
+                    _main.Run();
+                else
+                    throw new InvalidSyntaxException("Missing main block", 0, 0);
+            }
+            else
             {
                 throw new InvalidSyntaxException("Unexpected end of file, program was not terminated", 0, 0);
             }
         }
 
-        internal void Output(string output)
+        internal void Output(string file, string output)
         {
             if (_terminated)
             {
                 throw new NotImplementedException();
-            } else 
+            }
+            else
             {
                 throw new InvalidSyntaxException("Unexpected end of file, program was not terminated", 0, 0);
             }
@@ -62,7 +65,7 @@ namespace mpl.domain
                 _name = token.TokenString;
                 return;
             }
-            if (!_got_name) 
+            if (!_got_name)
             {
                 if (token.TokenType != TokenType.Control || token.TokenString != ";")
                 {
@@ -71,9 +74,31 @@ namespace mpl.domain
                 _got_name = true;
                 return;
             }
-            if (_current == null) 
+            if (_current == null)
             {
-
+                if (token.TokenType == TokenType.Name)
+                {
+                    if (token.TokenString.Equals("function"))
+                    {
+                        _current = new Function(this, token.Line, token.Position, true);
+                    }
+                    else if (token.TokenString.Equals("Procedure"))
+                    {
+                        _current = new Function(this, token.Line, token.Position, false);
+                    }
+                    else if (token.TokenString.Equals("begin"))
+                    {
+                        _current = new Function(this, token.Line, token.Position, false);
+                        _main = _current;
+                        _in_main = true;
+                    }
+                    else
+                    {
+                        throw new InvalidSyntaxException(
+                            $"program blocks must start with \"function\", \"procedure\" or \"begin\". Got {token.TokenString}",
+                            token.Line, token.Position);
+                    }
+                }
             }
         }
 

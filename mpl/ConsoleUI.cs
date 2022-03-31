@@ -26,7 +26,7 @@ namespace mpl
                     Program prog = parser.Parse();
                     if (options.Compile)
                     {
-                        prog.Output(options.Output);
+                        prog.Output(options.File, options.Output);
                     }
                     else
                     {
