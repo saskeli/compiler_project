@@ -4,11 +4,11 @@ namespace mpl.domain
 {
     public class MplInteger : IValue
     {
-        public readonly int Val;
+        public readonly long Val;
         public readonly int Line;
         public readonly int Position;
 
-        public MplInteger(int val, int line, int position)
+        public MplInteger(long val, int line, int position)
         {
             Val = val;
             Line = line;
@@ -16,7 +16,7 @@ namespace mpl.domain
         }
         public override int GetHashCode()
         {
-            return Val;
+            return (int)Val;
         }
 
         public new Type GetType() => Type.Int;

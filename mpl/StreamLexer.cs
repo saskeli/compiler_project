@@ -14,7 +14,8 @@ namespace mpl
             Empty,
             Control,
             Name,
-            LiteralInt,
+            Literal,
+            Real,
             LiteralString,
             Escaped,
             LineComment,
@@ -31,6 +32,7 @@ namespace mpl
         private int _line = 1;
         private int _pos;
         private bool _lastSlash;
+        private bool _lastCurl;
         private bool _lastStar;
 
         public StreamLexer(StreamReader stream, bool verbose, int debug, bool multiError)
@@ -58,7 +60,7 @@ namespace mpl
             while (!_stream.EndOfStream)
             {
                 int c = _stream.Read();
-                char cc = c >= 32 && c <= 126 ? (char) c : (char) 0;
+                char cc = c >= 32 && c <= 126 ? (char)c : (char)0;
                 if (_debug > 1) Console.WriteLine($"Read {c} from stream, \"{cc}\".");
                 try
                 {
@@ -74,11 +76,11 @@ namespace mpl
                         _exceptions.Add(e);
                         _state = State.Empty;
                         sb = new StringBuilder();
-                        _lastSlash = _lastStar = false;
+                        _lastSlash = _lastStar = _lastCurl = false;
                     }
                     else throw;
                 }
-                
+
             }
             if (_verbose || _debug > 0) Console.WriteLine("Reached end of stream");
             if (_state == State.Control && sb.Length > 0)
@@ -97,11 +99,11 @@ namespace mpl
                         _exceptions.Add(e);
                         _state = State.Empty;
                         sb = new StringBuilder();
-                        _lastSlash = _lastStar = false;
+                        _lastSlash = _lastStar = _lastCurl = false;
                     }
                     else throw;
                 }
-                
+
             }
             if (_multiError && _exceptions.Count > 0)
                 throw new MultiException(_exceptions);
@@ -116,7 +118,8 @@ namespace mpl
                 sb = _state switch
                 {
                     State.Empty => StateEmpty(Ctype.Whitespace, cc, sb),
-                    State.LiteralInt => StateLiteralInt(Ctype.Whitespace, cc, sb),
+                    State.Literal => StateLiteral(Ctype.Whitespace, cc, sb),
+                    State.Real => StateReal(Ctype.Whitespace, cc, sb),
                     State.Control => StateControl(Ctype.Whitespace, cc, sb),
                     State.Name => StateName(Ctype.Whitespace, cc, sb),
                     _ => sb
@@ -133,7 +136,7 @@ namespace mpl
                 case State.LineComment:
                     return sb;
                 case State.BlockComment:
-                    if (_lastStar && cc == '/') _state = State.Empty;
+                    if (_lastStar && cc == '}') _state = State.Empty;
                     _lastStar = cc == '*';
                     _pos++;
                     return sb;
@@ -175,7 +178,7 @@ namespace mpl
             sb = _state switch
             {
                 State.Empty => StateEmpty(ctype, cc, sb),
-                State.LiteralInt => StateLiteralInt(ctype, cc, sb),
+                State.Literal => StateLiteral(ctype, cc, sb),
                 State.Control => StateControl(ctype, cc, sb),
                 State.Name => StateName(ctype, cc, sb),
                 _ => sb
@@ -193,15 +196,18 @@ namespace mpl
                     case State.Control:
                         SplitControls(sb.ToString());
                         break;
-                    case State.LiteralInt:
+                    case State.Literal:
                         _tokenParser.ParseToken(new Token(TokenType.Number, _line, _pos, sb.ToString()));
+                        break;
+                    case State.Real:
+                        _tokenParser.ParseToken(new Token(TokenType.Real, _line, _pos, sb.ToString()));
                         break;
                     case State.Name:
                         _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString()));
                         break;
                 }
 
-                
+
             }
             _state = State.LiteralString;
             return new StringBuilder();
@@ -218,12 +224,12 @@ namespace mpl
                     break;
                 case Ctype.Control:
                     _state = State.Control;
-                    if (cc =='/')
-                        _lastSlash = true;
+                    if (cc == '/') _lastSlash = true;
+                    if (cc == '{') _lastCurl = true;
                     sb.Append(cc);
                     break;
                 case Ctype.Num:
-                    _state = State.LiteralInt;
+                    _state = State.Literal;
                     sb.Append(cc);
                     break;
                 case Ctype.Whitespace:
@@ -232,18 +238,27 @@ namespace mpl
             return sb;
         }
 
-        private StringBuilder StateLiteralInt(Ctype ctype, in char cc, StringBuilder sb)
+        private StringBuilder StateLiteral(Ctype ctype, in char cc, StringBuilder sb)
         {
             switch (ctype)
             {
                 case Ctype.Char:
-                    throw new UnexpectedCharacterException($"{cc} is not a valid character for an integer literal", _line, _pos);
+                    throw new UnexpectedCharacterException($"{cc} is not a valid character for a numeric literal", _line, _pos);
                 case Ctype.Num:
                     sb.Append(cc);
                     break;
                 case Ctype.Control:
+                    if (_stream.Peek() == '.' && cc == '.')
+                    {
+                        _stream.Read();
+                        _pos++;
+                        sb.Append(cc);
+                        _state = State.Real;
+                        break;
+                    }
                     _tokenParser.ParseToken(new Token(TokenType.Number, _line, _pos, sb.ToString()));
                     if (cc == '/') _lastSlash = true;
+                    if (cc == '{') _lastCurl = true;
                     sb = new StringBuilder();
                     _state = State.Control;
                     sb.Append(cc);
@@ -252,6 +267,39 @@ namespace mpl
                     _tokenParser.ParseToken(new Token(TokenType.Number, _line, _pos, sb.ToString()));
                     sb = new StringBuilder();
                     _state = State.Empty;
+                    break;
+            }
+            return sb;
+        }
+
+        private StringBuilder StateReal(Ctype ctype, in char cc, StringBuilder sb)
+        {
+            switch (ctype)
+            {
+                case Ctype.Char:
+                    if (cc != 'e') throw new UnexpectedCharacterException($"\"{cc}\" is an invalid character for a literal real.", _line, _pos);
+                    sb.Append(cc);
+                    break;
+                case Ctype.Num:
+                    sb.Append(cc);
+                    break;
+                case Ctype.Control:
+                    if (sb[sb.Length - 1] == 'e' && (cc == '+' || cc == '-'))
+                    {
+                        sb.Append(cc);
+                    }
+                    _tokenParser.ParseToken(new Token(TokenType.Real, _line, _pos, sb.ToString()));
+                    if (cc == '/') _lastSlash = true;
+                    if (cc == '{') _lastCurl = true;
+                    sb = new StringBuilder();
+                    _state = State.Control;
+                    sb.Append(cc);
+                    break;
+                case Ctype.Whitespace:
+                    _tokenParser.ParseToken(new Token(TokenType.Real, _line, _pos, sb.ToString()));
+                    sb = new StringBuilder();
+                    _state = State.Empty;
+                    sb.Append(cc);
                     break;
             }
             return sb;
@@ -272,33 +320,34 @@ namespace mpl
                     switch (cc)
                     {
                         case '/' when _lastSlash:
-                        {
-                            _state = State.LineComment;
-                            if (sb.Length > 1)
-                                SplitControls(sb.ToString(0, sb.Length - 1));
-                            sb = new StringBuilder();
-                            break;
-                        }
-                        case '*' when _lastSlash:
-                        {
-                            _state = State.BlockComment;
-                            if (sb.Length > 1)
-                                SplitControls(sb.ToString(0, sb.Length - 1));
-                            sb = new StringBuilder();
-                            break;
-                        }
+                            {
+                                _state = State.LineComment;
+                                if (sb.Length > 1)
+                                    SplitControls(sb.ToString(0, sb.Length - 1));
+                                sb = new StringBuilder();
+                                break;
+                            }
+                        case '*' when _lastCurl:
+                            {
+                                _state = State.BlockComment;
+                                if (sb.Length > 1)
+                                    SplitControls(sb.ToString(0, sb.Length - 1));
+                                sb = new StringBuilder();
+                                break;
+                            }
                         default:
-                        {
-                            if (cc == '/') _lastSlash = true;
-                            sb.Append(cc);
-                            break;
-                        }
+                            {
+                                _lastSlash = cc == '/';
+                                _lastCurl = cc == '{';
+                                sb.Append(cc);
+                                break;
+                            }
                     }
                     break;
                 case Ctype.Num:
                     SplitControls(sb.ToString());
                     sb = new StringBuilder();
-                    _state = State.LiteralInt;
+                    _state = State.Literal;
                     sb.Append(cc);
                     break;
                 case Ctype.Whitespace:
@@ -317,7 +366,6 @@ namespace mpl
             char? prev = null;
             foreach (char c in token)
             {
-                if (prev == '.' && c != '.') throw new UnexpectedCharacterException("Expected '.' to signify range", _line, pos);
                 switch (c)
                 {
                     case '.':
@@ -332,6 +380,26 @@ namespace mpl
                         if (prev == ':')
                         {
                             _tokenParser.ParseToken(new Token(tt, _line, _pos, ":="));
+                            prev = null;
+                            break;
+                        }
+                        else if (prev == '<')
+                        {
+                            _tokenParser.ParseToken(new Token(tt, _line, _pos, "<="));
+                            prev = null;
+                            break;
+                        }
+                        else if (prev == '>')
+                        {
+                            _tokenParser.ParseToken(new Token(tt, _line, _pos, ">="));
+                            prev = null;
+                            break;
+                        }
+                        goto default;
+                    case '>':
+                        if (prev == '<')
+                        {
+                            _tokenParser.ParseToken(new Token(tt, _line, _pos, "<>"));
                             prev = null;
                             break;
                         }
@@ -358,6 +426,7 @@ namespace mpl
                 case Ctype.Control:
                     _tokenParser.ParseToken(new Token(TokenType.Name, _line, _pos, sb.ToString()));
                     if (cc == '/') _lastSlash = true;
+                    if (cc == '{') _lastCurl = true;
                     sb = new StringBuilder();
                     sb.Append(cc);
                     _state = State.Control;
@@ -387,10 +456,10 @@ namespace mpl
                 case 'r':
                     return sb.Append("\r");
                 default:
-                {
-                    string mess = $"Undefined escape sequence at line {_line}, position {_pos}.";
-                    throw new UnexpectedCharacterException(mess, _line, _pos);
-                }
+                    {
+                        string mess = $"Undefined escape sequence at line {_line}, position {_pos}.";
+                        throw new UnexpectedCharacterException(mess, _line, _pos);
+                    }
             }
         }
 

@@ -5,6 +5,7 @@
         Name,
         String,
         Number,
+        Real,
         Control
     }
 

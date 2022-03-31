@@ -24,7 +24,15 @@ namespace mpl
                 {
                     StreamLexer parser = new StreamLexer(sr, options.Verbose, options.Debug, options.MultiError);
                     Program prog = parser.Parse();
-                    prog.Run();
+                    if (options.Compile)
+                    {
+                        prog.Output(options.Output);
+                    }
+                    else
+                    {
+                        prog.Run();
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -126,12 +134,16 @@ namespace mpl
 
         public class Options
         {
+            [Option('c', "compile", Required = false, Default = false,
+                HelpText = "Enable output of compiled Nasm instead of executing interpreted input.")]
+            public bool Compile { get; set; }
+
             [Option('v', "verbose", Required = false, Default = false,
-                HelpText = "Enable output of diagnostic messages")]
+                HelpText = "Enable output of diagnostic messages.")]
             public bool Verbose { get; set; }
 
             [Option('d', "debug", Required = false, Default = 0,
-                HelpText = "Enable detailed diagnostic messages")]
+                HelpText = "Enable detailed diagnostic messages.")]
             public int Debug { get; set; }
 
             [Option('m', "multi-error", Required = false, Default = false,
@@ -139,8 +151,12 @@ namespace mpl
             public bool MultiError { get; set; }
 
             [Value(0, Required = true, MetaName = "file",
-                HelpText = "input Mini-PL source code file. Required")]
+                HelpText = "Input Mini-PL source code file.")]
             public string File { get; set; }
+
+            [Value(1, Required = false, MetaName = "output", Default = "",
+                HelpText = "Name of ouput file when generating Nasm.")]
+            public string Output { get; set; }
         }
     }
 }

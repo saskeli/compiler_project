@@ -6,9 +6,10 @@ namespace mpl.domain
     {
         public static readonly HashSet<string> Keywords = new HashSet<string>
         {
-            "int",
+            "integer",
+            "real",
             "string",
-            "bool",
+            "boolean",
             "var",
             "for",
             "in",
@@ -16,7 +17,25 @@ namespace mpl.domain
             "end",
             "read",
             "print",
-            "assert"
+            "writeln",
+            "assert",
+            "begin",
+            "while",
+            "do",
+            "program",
+            "function",
+            "procedure",
+            "array", 
+            "of",
+            "return",
+            "if",
+            "then",
+            "else",
+            "not",
+            "or",
+            "and",
+            "false",
+            "true",
         };
         public abstract void Run();
         public abstract Part GetParent();

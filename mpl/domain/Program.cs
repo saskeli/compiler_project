@@ -1,76 +1,80 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using mpl.Exceptions;
 
 namespace mpl.domain
 {
     public class Program : Part
     {
-        private Part _current;
+        private Part _current = null;
+        private readonly List<Part> _functions = new List<Part>();
         private readonly List<Part> _subparts = new List<Part>();
-        public Dictionary<string, int> Scope = new Dictionary<string, int>();
         private int _line;
         private int _pos;
-        private bool _newAssign;
+        private bool _got_prog = false;
+        private string _name = null;
+        private bool _got_name = false;
+        private bool _terminated = false;
 
         public override void Run()
         {
-            foreach (Part part in _subparts)
+            if (_terminated)
             {
-                part.Run();
+                foreach (Part part in _subparts)
+                {
+                    part.Run();
+                }
+            } else 
+            {
+                throw new InvalidSyntaxException("Unexpected end of file, program was not terminated", 0, 0);
+            }
+        }
+
+        internal void Output(string output)
+        {
+            if (_terminated)
+            {
+                throw new NotImplementedException();
+            } else 
+            {
+                throw new InvalidSyntaxException("Unexpected end of file, program was not terminated", 0, 0);
             }
         }
 
         public override Part GetParent() => this;
         public override void Add(Token token)
         {
-            if (_newAssign)
+            if (!_got_prog)
             {
-                if (token.TokenType != TokenType.Control || token.TokenString != ":=")
-                    throw new InvalidSyntaxException($"Expected assignment. Got {token.TokenString}", token.Line, token.Position);
-                _newAssign = false;
-                return;
-            }
-            _line = token.Line;
-            _pos = token.Position;
-            if (token.TokenType == TokenType.Control && token.TokenString.Equals(";"))
-            {
-                if (_current == null)
+                if (token.TokenString != "program")
                 {
-                    throw new InvalidSyntaxException("Empty statement. Nothing to terminate", token.Line, token.Position);
+                    throw new InvalidSyntaxException($"For whatever reason, file must start with \"program\".", token.Line, token.Position);
                 }
-
-                if (!_current.Exit()) return;
-                if (_current is Definition definition)
+                _got_prog = true;
+                return;
+            }
+            if (_name == null)
+            {
+                if (token.TokenType != TokenType.Name || Keywords.Contains(token.TokenString))
                 {
-                    Scope.Add(definition.Name, _subparts.Count);
+                    throw new InvalidSyntaxException($"{token.TokenString} is an invalid program identifier.", token.Line, token.Position);
                 }
-                _subparts.Add(_current);
-                _current = null;
+                _name = token.TokenString;
                 return;
             }
-            if (_current != null)
+            if (!_got_name) 
             {
-                _current.Add(token);
+                if (token.TokenType != TokenType.Control || token.TokenString != ";")
+                {
+                    throw new InvalidSyntaxException($"Program name must be terminated by \";\". Got {token.TokenString}.", token.Line, token.Position);
+                }
+                _got_name = true;
                 return;
             }
-
-            if (token.TokenType != TokenType.Name)
+            if (_current == null) 
             {
-                throw new InvalidSyntaxException("Expected keyword or variable identifier", token.Line, token.Position);
+
             }
-
-            if (Keywords.Contains(token.TokenString))
-            {
-                AddKey(token);
-                return;
-            }
-
-            if (!Scope.ContainsKey(token.TokenString))
-                throw new InvalidSyntaxException($"Use of undeclared variable {token.TokenString}", token.Line, token.Position);
-
-            _current = new Assignment((Definition)_subparts[Scope[token.TokenString]], this, token.Line, token.Position);
-            _newAssign = true;
-            _subparts.Add(_current);
         }
 
         public override bool Exit() => false;
@@ -78,7 +82,7 @@ namespace mpl.domain
         {
             if (Scope.ContainsKey(name))
             {
-                return (Definition) _subparts[Scope[name]];
+                return (Definition)_subparts[Scope[name]];
             }
 
             return null;
@@ -113,5 +117,5 @@ namespace mpl.domain
         }
     }
 
-    
+
 }
