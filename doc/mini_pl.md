@@ -103,7 +103,7 @@ operators (via productions defined at different hierarchical levels).
   
 ---
   
-\<structured statement> ::= \<block> | \<if statement> | \<while statement>
+\<structured statement> ::= \<block> | \<if statement> | \<while statement>  
 \<if statement> ::= "**if**" \<Boolean expr> "**then**" \<statement> |  
 &emsp;&emsp;&emsp;&emsp;&emsp;"**if**" \<Boolean expr> "**then**" \<statement> "**else**" \<statement>  
 \<while statement> ::= "**while**" \<Boolean expr> "**do**" \<statement>  
