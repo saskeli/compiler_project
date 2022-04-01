@@ -1,6 +1,6 @@
 # Language implementation
 
-Based on the [language definition](doc/language_definition.md)
+Based on the [language definition](language_definition.md)
 
 Below is the regular definition of the language as implemented (barring bugs).
 
