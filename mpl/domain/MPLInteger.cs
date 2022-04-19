@@ -4,11 +4,11 @@ namespace mpl.domain
 {
     public class MplInteger : IValue
     {
-        public readonly long Val;
+        public readonly int Val;
         public readonly int Line;
         public readonly int Position;
 
-        public MplInteger(long val, int line, int position)
+        public MplInteger(int val, int line, int position)
         {
             Val = val;
             Line = line;

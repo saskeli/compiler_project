@@ -7,8 +7,9 @@ namespace mpl.domain
     public class Program : Part
     {
         private Part _current = null;
-        private Part _main = null;
+        private readonly List<Part> _main = new List<Part>();
         private readonly List<Part> _functions = new List<Part>();
+        public Dictionary<string, int> Scope = new Dictionary<string, int>();
         private int _line;
         private int _pos;
         private bool _got_prog = false;
@@ -21,10 +22,10 @@ namespace mpl.domain
         {
             if (_terminated)
             {
-                if (_main != null)
-                    _main.Run();
-                else
-                    throw new InvalidSyntaxException("Missing main block", 0, 0);
+                foreach (Part p in _main)
+                {
+                    p.Run();
+                }
             }
             else
             {
@@ -74,6 +75,10 @@ namespace mpl.domain
                 _got_name = true;
                 return;
             }
+            if (_in_main)
+            {
+
+            }
             if (_current == null)
             {
                 if (token.TokenType == TokenType.Name)
@@ -88,8 +93,6 @@ namespace mpl.domain
                     }
                     else if (token.TokenString.Equals("begin"))
                     {
-                        _current = new Function(this, token.Line, token.Position, false);
-                        _main = _current;
                         _in_main = true;
                     }
                     else
@@ -107,7 +110,7 @@ namespace mpl.domain
         {
             if (Scope.ContainsKey(name))
             {
-                return (Definition)_subparts[Scope[name]];
+                return (Definition)_main[Scope[name]];
             }
 
             return null;
@@ -131,7 +134,6 @@ namespace mpl.domain
         public void NullOut()
         {
             _current = null;
-            _newAssign = false;
         }
 
         public Program GetProgram()
